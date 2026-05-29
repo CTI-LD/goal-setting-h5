@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>2026年攀登赢 - 目标设定工具</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    background: #fff;
+    min-height: 100vh;
+    overflow-x: hidden;
+    position: relative;
+  }
+
+  /* ===== 山峰背景 ===== */
+  .mountain-bg {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    z-index: 0;
+    pointer-events: none;
+    overflow: hidden;
+  }
+  .mountain {
+    position: absolute;
+    bottom: 0;
+    width: 0; height: 0;
+    opacity: 0.06;
+  }
+  .m1 {
+    left: -5%;
+    border-left: 25vw solid transparent;
+    border-right: 22vw solid transparent;
+    border-bottom: 38vh solid #1a3a5c;
+  }
+  .m2 {
+    left: 15%;
+    border-left: 28vw solid transparent;
+    border-right: 26vw solid transparent;
+    border-bottom: 50vh solid #2a5080;
+  }
+  .m3 {
+    right: -2%;
+    border-left: 30vw solid transparent;
+    border-right: 24vw solid transparent;
+    border-bottom: 42vh solid #1a3a5c;
+  }
+  .m4 {
+    right: 18%;
+    border-left: 20vw solid transparent;
+    border-right: 18vw solid transparent;
+    border-bottom: 32vh solid #3a6aa0;
+  }
+
+  /* ===== 内容容器 ===== */
+  .container {
+    position: relative;
+    z-index: 1;
+    max-width: 520px;
+    margin: 0 auto;
+    padding: 24px 16px 60px;
+    min-height: 100vh;
+  }
+
+  /* ===== 标题区 ===== */
+  .header {
+    text-align: center;
+    padding: 16px 0 28px;
+  }
+  .header h1 {
+    font-size: 28px;
+    font-weight: 700;
+    color: #1a3a5c;
+    letter-spacing: 3px;
+  }
+  .header .subtitle {
+    font-size: 13px;
+    color: #8899aa;
+    margin-top: 6px;
+    letter-spacing: 1px;
+  }
+
+  /* ===== 角色选择页 ===== */
+  .role-page { display: block; }
+  .form-page { display: none; }
+
+  .role-card {
+    background: #fff;
+    border: 2px solid #e8eef4;
+    border-radius: 14px;
+    padding: 24px 20px;
+    margin-bottom: 14px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .role-card:hover {
+    border-color: #2a6090;
+    box-shadow: 0 4px 20px rgba(26,58,92,0.10);
+    transform: translateY(-2px);
+  }
+  .role-card:active {
+    transform: translateY(0);
+  }
+  .role-icon {
+    width: 52px; height: 52px;
+    border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 26px;
+    flex-shrink: 0;
+  }
+  .role-icon.lab { background: #e8f0fa; }
+  .role-icon.sales { background: #fef3e8; }
+  .role-info h3 {
+    font-size: 17px; font-weight: 600; color: #1a3a5c;
+  }
+  .role-info p {
+    font-size: 12px; color: #99aab8; margin-top: 4px;
+  }
+  .role-arrow {
+    margin-left: auto;
+    color: #ccc;
+    font-size: 18px;
+  }
+
+  /* ===== 表单页 ===== */
+  .form-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .back-btn {
+    width: 34px; height: 34px;
+    border-radius: 10px;
+    background: #f4f7fb;
+    border: none;
+    font-size: 18px;
+    color: #2a6090;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s;
+  }
+  .back-btn:hover { background: #e8eff8; }
+  .form-header h2 {
+    font-size: 18px; font-weight: 600; color: #1a3a5c;
+  }
+
+  /* ===== 表单项 ===== */
+  .field-group {
+    background: #fff;
+    border: 1px solid #e8eef4;
+    border-radius: 12px;
+    margin-bottom: 12px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+  .field-group:focus-within {
+    border-color: #2a6090;
+    box-shadow: 0 0 0 3px rgba(42,96,144,0.08);
+  }
+  .field-label {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    padding: 12px 14px 6px;
+  }
+  .field-label .name {
+    font-size: 14px; font-weight: 600; color: #1a3a5c;
+  }
+  .field-label .en {
+    font-size: 11px; color: #aaa; font-weight: 400;
+  }
+  .field-label .required {
+    color: #e85a5a;
+    font-size: 14px;
+  }
+  .field-hint {
+    font-size: 11px; color: #99aab8;
+    padding: 0 14px 8px;
+    line-height: 1.5;
+  }
+  .field-input {
+    width: 100%;
+    border: none;
+    outline: none;
+    padding: 8px 14px 14px;
+    font-size: 14px;
+    color: #333;
+    background: transparent;
+    resize: none;
+    min-height: 44px;
+    line-height: 1.6;
+  }
+  .field-input::placeholder {
+    color: #c0ccd8;
+  }
+
+  /* 状态指示 */
+  .status-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    transition: background 0.3s;
+  }
+  .status-dot.empty { background: #ddd; }
+  .status-dot.filled { background: #4aba82; }
+
+  /* ===== 操作按钮 ===== */
+  .btn-area {
+    margin-top: 20px;
+    display: flex;
+    gap: 10px;
+  }
+  .btn {
+    flex: 1;
+    padding: 14px;
+    border-radius: 11px;
+    border: none;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+  }
+  .btn-primary {
+    background: linear-gradient(135deg, #2a6090, #1a4570);
+    color: #fff;
+    box-shadow: 0 4px 14px rgba(42,96,144,0.25);
+  }
+  .btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(42,96,144,0.35);
+  }
+  .btn-secondary {
+    background: #f4f7fb;
+    color: #2a6090;
+    border: 1px solid #d8e3ef;
+  }
+  .btn-secondary:hover { background: #eaf0f8; }
+
+  /* ===== 结果弹窗 ===== */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.40);
+    z-index: 100;
+    backdrop-filter: blur(4px);
+    justify-content: center;
+    align-items: flex-end;
+  }
+  .modal-overlay.show { display: flex; }
+  .modal-box {
+    background: #fff;
+    border-radius: 20px 20px 0 0;
+    width: 100%;
+    max-width: 520px;
+    max-height: 80vh;
+    overflow-y: auto;
+    padding: 28px 20px 36px;
+    animation: slideUp 0.3s ease;
+  }
+  @keyframes slideUp {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+  }
+  .modal-title {
+    font-size: 19px; font-weight: 700; color: #1a3a5c;
+    text-align: center; margin-bottom: 6px;
+  }
+  .modal-subtitle {
+    font-size: 13px; color: #99aab8;
+    text-align: center; margin-bottom: 20px;
+  }
+  .result-item {
+    background: #f8fafc;
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin-bottom: 8px;
+    border-left: 3px solid #4aba82;
+  }
+  .result-item.missing {
+    border-left-color: #e85a5a;
+    background: #fef8f8;
+  }
+  .result-item .ri-label {
+    font-size: 12px; font-weight: 600; color: #667788;
+    margin-bottom: 4px;
+  }
+  .result-item .ri-content {
+    font-size: 14px; color: #333; line-height: 1.6;
+  }
+  .result-item .ri-tip {
+    font-size: 12px; color: #e85a5a; margin-top: 4px;
+  }
+  .modal-close {
+    position: absolute; top: 16px; right: 16px;
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    border: none; background: #f0f4f8;
+    color: #99aab8;
+    font-size: 18px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  /* ===== 缺失提示 ===== */
+  .missing-alert {
+    display: none;
+    background: #fef8f8;
+    border: 1px solid #fdd8d8;
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin-bottom: 14px;
+    font-size: 13px; color: #c44;
+  }
+  .missing-alert.show { display: block; }
+  .missing-alert strong { color: #e85a5a; }
+
+  /* ===== 响应式 ===== */
+  @media (max-width: 400px) {
+    .container { padding: 16px 12px 48px; }
+    .header h1 { font-size: 24px; }
+    .role-card { padding: 18px 16px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- 山峰背景 -->
+<div class="mountain-bg">
+  <div class="mountain m1"></div>
+  <div class="mountain m2"></div>
+  <div class="mountain m3"></div>
+  <div class="mountain m4"></div>
+</div>
+
+<div class="container">
+
+  <!-- 标题 -->
+  <div class="header">
+    <h1>🏔️ 2026年攀登赢</h1>
+    <p class="subtitle">SMART 目标设定工具 · CTI 华测检测</p>
+  </div>
+
+  <!-- ===== 角色选择页 ===== -->
+  <div class="role-page" id="rolePage">
+    <div class="role-card" onclick="selectRole('lab')">
+      <div class="role-icon lab">🔬</div>
+      <div class="role-info">
+        <h3>实验室主管</h3>
+        <p>7要素目标设定表（含数据来源）</p>
+      </div>
+      <span class="role-arrow">›</span>
+    </div>
+    <div class="role-card" onclick="selectRole('sales')">
+      <div class="role-icon sales">📊</div>
+      <div class="role-info">
+        <h3>销售主管</h3>
+        <p>6要素目标设定表（SMART + 责任人）</p>
+      </div>
+      <span class="role-arrow">›</span>
+    </div>
+  </div>
+
+  <!-- ===== 表单页 ===== -->
+  <div class="form-page" id="formPage">
+    <div class="form-header">
+      <button class="back-btn" onclick="goBack()">←</button>
+      <h2 id="formTitle">实验室目标设定</h2>
+    </div>
+
+    <div class="missing-alert" id="missingAlert">
+      ⚠️ 检测到 <strong id="missingCount">0</strong> 项内容需要补充，请完善后重新检查
+    </div>
+
+    <div id="fieldsContainer"></div>
+
+    <div class="btn-area">
+      <button class="btn btn-secondary" onclick="clearAll()">清空重填</button>
+      <button class="btn btn-primary" onclick="checkGoal()">🔍 检查完整性</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- ===== 结果弹窗 ===== -->
+<div class="modal-overlay" id="resultModal" onclick="closeModal(event)">
+  <div class="modal-box" onclick="event.stopPropagation()">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div class="modal-title">📋 目标诊断报告</div>
+    <div class="modal-subtitle" id="modalSubtitle">正在分析您的目标...</div>
+    <div id="resultContent"></div>
+    <div style="margin-top:20px;display:flex;gap:10px;">
+      <button class="btn btn-secondary" style="flex:1;padding:12px;" onclick="closeModal()">返回修改</button>
+      <button class="btn btn-primary" style="flex:1;padding:12px;" onclick="copyResult()">复制标准描述</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ========== 配置 ==========
+const LAB_FIELDS = [
+  { key: 'specific',     name: '明确性',   en: 'Specific',     hint: '目标要具体、清晰，回答"做什么、对谁做、在哪里做"', required: true },
+  { key: 'measurable',   name: '衡量性',   en: 'Measurable',   hint: '目标要可量化或有明确完成步骤/标准', required: true },
+  { key: 'attainable',   name: '可实现性', en: 'Attainable',   hint: '目标可达成，有路径支撑，有挑战性', required: true },
+  { key: 'relevant',     name: '相关性',   en: 'Relevant',     hint: '目标要与团队战略、个人优势、区域资源匹配', required: true },
+  { key: 'timebound',    name: '时限性',   en: 'Time-bound',   hint: '目标要有明确的起止时间', required: true },
+  { key: 'owner',        name: '责任人',   en: '',             hint: '必须是唯一责任人/团队', required: true },
+  { key: 'datasource',   name: '数据来源', en: '',             hint: '必须明确数据出处，确保可追溯、可验证', required: true },
+];
+
+const SALES_FIELDS = [
+  { key: 'specific',     name: '明确性',   en: 'Specific',     hint: '目标要具体、清晰，回答"做什么、对谁做、在哪里做"', required: true },
+  { key: 'measurable',   name: '衡量性',   en: 'Measurable',   hint: '目标要可量化或有明确完成步骤/标准', required: true },
+  { key: 'attainable',   name: '可实现性', en: 'Attainable',   hint: '目标可达成，有路径支撑，有挑战性', required: true },
+  { key: 'relevant',     name: '相关性',   en: 'Relevant',     hint: '目标要与团队战略、个人优势、区域资源匹配', required: true },
+  { key: 'timebound',    name: '时限性',   en: 'Time-bound',   hint: '目标要有明确的起止时间', required: true },
+  { key: 'owner',        name: '责任人',   en: '',             hint: '必须是唯一责任人/团队', required: true },
+];
+
+let currentRole = '';
+let currentFields = [];
+
+// ========== 角色选择 ==========
+function selectRole(role) {
+  currentRole = role;
+  currentFields = role === 'lab' ? LAB_FIELDS : SALES_FIELDS;
+  document.getElementById('formTitle').textContent =
+    role === 'lab' ? '实验室目标设定' : '销售目标设定';
+  renderFields();
+  document.getElementById('rolePage').style.display = 'none';
+  document.getElementById('formPage').style.display = 'block';
+}
+
+function goBack() {
+  document.getElementById('formPage').style.display = 'none';
+  document.getElementById('rolePage').style.display = 'block';
+  currentRole = '';
+}
+
+// ========== 渲染表单 ==========
+function renderFields() {
+  const container = document.getElementById('fieldsContainer');
+  container.innerHTML = currentFields.map((f, i) => `
+    <div class="field-group" data-key="${f.key}">
+      <div class="field-label">
+        <span class="status-dot empty" id="dot_${f.key}"></span>
+        <span class="name">${f.name}</span>
+        ${f.en ? `<span class="en">${f.en}</span>` : ''}
+        ${f.required ? '<span class="required">*</span>' : ''}
+      </div>
+      <div class="field-hint">${f.hint}</div>
+      <textarea class="field-input" id="input_${f.key}"
+        placeholder="请输入${f.name}相关内容..."
+        rows="2"
+        oninput="updateStatus('${f.key}')"
+      ></textarea>
+    </div>
+  `).join('');
+}
+
+function updateStatus(key) {
+  const val = document.getElementById('input_' + key).value.trim();
+  const dot = document.getElementById('dot_' + key);
+  if (val.length > 0) {
+    dot.className = 'status-dot filled';
+  } else {
+    dot.className = 'status-dot empty';
+  }
+  // 隐藏缺失提示
+  document.getElementById('missingAlert').classList.remove('show');
+}
+
+// ========== 清空 ==========
+function clearAll() {
+  currentFields.forEach(f => {
+    const el = document.getElementById('input_' + f.key);
+    if (el) { el.value = ''; updateStatus(f.key); }
+  });
+  document.getElementById('missingAlert').classList.remove('show');
+}
+
+// ========== 检查完整性 ==========
+function checkGoal() {
+  const results = [];
+  let missingCount = 0;
+
+  currentFields.forEach(f => {
+    const val = document.getElementById('input_' + f.key).value.trim();
+    const isMissing = f.required && val.length === 0;
+    if (isMissing) missingCount++;
+
+    results.push({
+      ...f,
+      value: val,
+      isMissing,
+      suggestion: getSuggestion(f.key, val)
+    });
+  });
+
+  if (missingCount > 0) {
+    document.getElementById('missingCount').textContent = missingCount;
+    document.getElementById('missingAlert').classList.add('show');
+  } else {
+    document.getElementById('missingAlert').classList.remove('show');
+  }
+
+  showResult(results, missingCount);
+}
+
+function getSuggestion(key, val) {
+  if (!val) return null;
+  const suggestions = {
+    specific: () => val.length < 8 ? '建议补充更具体的行动对象和场景' : null,
+    measurable: () => /[\d]+/.test(val) ? null : '建议加入可量化的数字指标',
+    attainable: () => val.length < 10 ? '建议说明实现的路径或资源支撑' : null,
+    relevant: () => /战略|优势|资源|团队|匹配/.test(val) ? null : '建议关联团队战略或个人优势',
+    timebound: () => /\d{4}|\d{1,2}[月日]/.test(val) ? null : '建议补充具体的起止时间',
+    owner: () => val.length < 2 ? '建议填写具体的负责人姓名' : null,
+    datasource: () => /系统|报表|数据|记录|台账|平台/.test(val) ? null : '建议明确数据来源渠道',
+  };
+  return suggestions[key] ? suggestions[key]() : null;
+}
+
+// ========== 显示结果 ==========
+let lastResultText = '';
+
+function showResult(results, missingCount) {
+  const container = document.getElementById('resultContent');
+  const subtitle = document.getElementById('modalSubtitle');
+
+  if (missingCount === 0) {
+    subtitle.textContent = '✅ 您的目标已符合全部标准要求！';
+    subtitle.style.color = '#4aba82';
+  } else {
+    subtitle.textContent = `⚠️ 还有 ${missingCount} 项需要完善`;
+    subtitle.style.color = '#e85a5a';
+  }
+
+  container.innerHTML = results.map(r => {
+    if (r.isMissing) {
+      return `<div class="result-item missing">
+        <div class="ri-label">❌ ${r.name}${r.en ? ' ('+r.en+')' : ''} — 未填写</div>
+        <div class="ri-tip">必填项：${r.hint}</div>
+      </div>`;
+    }
+    let html = `<div class="result-item">
+      <div class="ri-label">✅ ${r.name}${r.en ? ' ('+r.en+')' : ''}</div>
+      <div class="ri-content">${escapeHtml(r.value)}</div>`;
+    if (r.suggestion) {
+      html += `<div class="ri-tip">💡 建议：${r.suggestion}</div>`;
+    }
+    html += `</div>`;
+    return html;
+  }).join('');
+
+  // 生成标准描述文本
+  lastResultText = generateStandardText(results);
+
+  document.getElementById('resultModal').classList.add('show');
+}
+
+function generateStandardText(results) {
+  const filled = results.filter(r => !r.isMissing && r.value);
+  let lines = [];
+  lines.push(`【${currentRole === 'lab' ? '实验室' : '销售'}目标设定标准描述】`);
+  lines.push('');
+  filled.forEach(r => {
+    lines.push(`▸ ${r.name}：${r.value}`);
+  });
+  const missing = results.filter(r => r.isMissing);
+  if (missing.length > 0) {
+    lines.push('');
+    lines.push(`⚠️ 待补充项：`);
+    missing.forEach(r => {
+      lines.push(`  · ${r.name} — ${r.hint}`);
+    });
+  }
+  return lines.join('\n');
+}
+
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML.replace(/\n/g, '<br>');
+}
+
+// ========== 弹窗控制 ==========
+function closeModal(e) {
+  if (e && e.target !== e.currentTarget) return;
+  document.getElementById('resultModal').classList.remove('show');
+}
+
+function copyResult() {
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(lastResultText).then(() => {
+      alert('✅ 标准描述已复制到剪贴板！');
+    });
+  } else {
+    const ta = document.createElement('textarea');
+    ta.value = lastResultText;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    alert('✅ 标准描述已复制到剪贴板！');
+  }
+}
+</script>
+</body>
+</html>

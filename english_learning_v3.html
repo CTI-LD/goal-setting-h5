@@ -1,0 +1,1368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>CTI英语学习 - 英式男声版v3</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 10px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        .header h1 { font-size: 24px; margin-bottom: 5px; }
+        .header p { font-size: 14px; opacity: 0.9; }
+
+        .voice-info {
+            padding: 10px 20px;
+            background: #e7f3ff;
+            border-left: 4px solid #2196F3;
+            font-size: 14px;
+            color: #333;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+        }
+        .voice-info strong { color: #1565c0; }
+
+        .controls {
+            padding: 15px 20px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+        }
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            touch-action: manipulation;
+        }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+        .btn:active { transform: translateY(0); }
+        .btn-primary { background: #667eea; color: white; }
+        .btn-success { background: #28a745; color: white; }
+        .btn-warning { background: #ffc107; color: #000; }
+        .btn-danger { background: #dc3545; color: white; }
+        .btn-info { background: #17a2b8; color: white; }
+        .btn.active { box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.4); }
+
+        .speed-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-left: auto;
+        }
+        .speed-control label { font-size: 14px; font-weight: 600; color: #333; white-space: nowrap; }
+        .speed-control input[type="range"] { width: 80px; }
+        .speed-display { min-width: 40px; text-align: center; font-weight: 600; color: #667eea; }
+
+        .progress-bar {
+            height: 5px;
+            background: #e0e0e0;
+            margin: 0 20px;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background: #667eea;
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+        .status {
+            text-align: center;
+            padding: 8px 20px;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .article-content {
+            padding: 20px;
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+
+        .sentence {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .sentence:hover {
+            background: #e9ecef;
+            transform: translateX(5px);
+        }
+        .sentence.active {
+            background: #fff3cd;
+            border-left-color: #ffc107;
+            box-shadow: 0 4px 12px rgba(255,193,7,0.3);
+        }
+        .sentence.playing {
+            background: #d4edda;
+            border-left-color: #28a745;
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+        }
+
+        .english-text {
+            font-size: 18px;
+            line-height: 1.8;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .english-text .word {
+            display: inline-block;
+            padding: 2px 4px;
+            margin: 2px 1px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+            touch-action: manipulation;
+        }
+        .english-text .word:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .chinese-text {
+            font-size: 16px;
+            line-height: 1.6;
+            color: #666;
+            padding: 10px;
+            background: #fff;
+            border-radius: 8px;
+            display: none;
+        }
+        .chinese-text.show { display: block; animation: slideDown2 0.3s ease; }
+        @keyframes slideDown2 {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* 翻译面板 - 底部上滑 */
+        .translation-panel {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            border-top: 3px solid #667eea;
+            padding: 20px;
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
+            display: none;
+            max-height: 50vh;
+            overflow-y: auto;
+            z-index: 1000;
+        }
+        .translation-panel.show { display: block; animation: slideUp 0.3s ease; }
+        @keyframes slideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+        .translation-panel h3 { color: #667eea; margin-bottom: 10px; font-size: 18px; }
+        .translation-panel .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #dc3545;
+            color: white;
+            border: none;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 16px;
+            touch-action: manipulation;
+        }
+        .translation-panel .word-info { margin-bottom: 15px; }
+        .translation-panel .phonetic { color: #666; font-style: italic; margin: 5px 0; }
+        .translation-panel .definition { color: #333; line-height: 1.6; }
+        .translation-panel .example {
+            color: #666;
+            font-style: italic;
+            margin-top: 10px;
+            padding-left: 15px;
+            border-left: 3px solid #667eea;
+        }
+        .translation-panel .play-word-btn {
+            display: inline-block;
+            padding: 6px 16px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 13px;
+            margin-top: 8px;
+            touch-action: manipulation;
+            transition: all 0.2s;
+        }
+        .translation-panel .play-word-btn:hover { background: #5a6fd6; }
+
+        .audio-status {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-size: 12px;
+            display: none;
+            z-index: 2000;
+            max-width: 80%;
+        }
+        .audio-status.show { display: block; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* 手机适配 */
+        @media (max-width: 768px) {
+            .controls { flex-direction: row; flex-wrap: wrap; justify-content: center; }
+            .controls .btn { flex: 0 1 auto; padding: 8px 12px; font-size: 12px; }
+            .speed-control { margin-left: 0; width: 100%; justify-content: center; }
+            .header h1 { font-size: 20px; }
+            .english-text { font-size: 16px; }
+            .article-content { max-height: 60vh; }
+        }
+        @media (max-width: 480px) {
+            .controls .btn { font-size: 11px; padding: 6px 10px; }
+            .speed-control input[type="range"] { width: 60px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🇬🇧 CTI英语学习 - 英式男声版</h1>
+            <p>点击句子播放 | 点击单词查词义+听发音 | 同步显示中文翻译</p>
+        </div>
+
+        <div class="voice-info">
+            <strong>语音：</strong> <span id="voiceName">en-GB-RyanNeural (Edge TTS 英式男声)</span> |
+            <strong>方式：</strong> ✅ 预生成Edge TTS音频 + 浏览器TTS备用 |
+            <strong>语速：</strong> <span id="currentRateDisplay">0.85</span>x
+        </div>
+
+        <div class="controls">
+            <button class="btn btn-primary" onclick="playCurrent()">▶️ 播放当前</button>
+            <button class="btn btn-success" onclick="playNext()">⏭️ 下一句</button>
+            <button class="btn btn-warning" id="loopBtn" onclick="toggleLoop()">🔁 单句循环: 关</button>
+            <button class="btn btn-info" id="autoPlayBtn" onclick="toggleAutoPlay()">🔄 全文连播: 关</button>
+            <button class="btn btn-danger" onclick="stopPlaying()">⏹️ 停止</button>
+
+            <div class="speed-control">
+                <label>语速:</label>
+                <input type="range" min="0.5" max="1.5" step="0.05" value="0.85" id="rateRange" oninput="changeRate()">
+                <span class="speed-display" id="rateDisplay">0.85x</span>
+            </div>
+        </div>
+
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+
+        <div class="status" id="status">准备就绪 — 点击任意句子开始学习</div>
+
+        <div class="article-content" id="articleContent"></div>
+    </div>
+
+    <!-- 底部翻译面板 -->
+    <div class="translation-panel" id="translationPanel">
+        <button class="close-btn" onclick="closeTranslation()">✕</button>
+        <h3 id="translationTitle">单词释义</h3>
+        <div id="translationContent"></div>
+    </div>
+
+    <!-- 顶部音频状态提示 -->
+    <div class="audio-status" id="audioStatus"></div>
+
+<script>
+
+const articleData = [
+    {en: 'Hello everyone. My name is Greg. I work in the Learning & Development team at CTI Group.', cn: '大家好。我叫Greg。我在CTI集团的学习与发展团队工作。'},
+    {en: 'I am very happy to be here today. I want to talk to you about the sales system we use at CTI.', cn: '今天我很高兴来到这里。我想和大家谈谈我们在CTI使用的销售系统。'},
+    {en: 'We call it the Lead-to-Cash system. It covers everything from the first sign a client may want to buy, all the way until we receive full payment.', cn: '我们称之为"从线索到现金"系统。它涵盖了从客户初次表示有意购买，一直到我们收到全部款项的全过程。'},
+    {en: 'Let us start with one basic question: where does selling start, and where does it end?', cn: '让我们从一个基本问题开始：销售从哪里开始，又在哪里结束？'},
+    {en: 'Does selling start when a client calls us? Or when we see a tender notice online?', cn: '销售是从客户打电话给我们开始的吗？还是从我们在网上看到招标通知开始的？'},
+    {en: 'The answer is neither.', cn: '答案都不是。'},
+    {en: 'The real start is much earlier. It is the moment a client first thinks they might need our service. This early interest is called a lead. This lead is our starting point for all sales work.', cn: '真正的开始要早得多。是客户第一次想到他们可能需要我们服务的那个时刻。这种早期的兴趣被称为线索。这个线索就是我们所有销售工作的起点。'},
+    {en: 'This idea comes from Huawei, a large well-known company from China. Their main rule is clear: finding a client\'s early interest is the first step of sales.', cn: '这个理念来自华为，一家知名的中国大公司。他们的核心规则很明确：找到客户的早期兴趣是销售的第一步。'},
+    {en: 'The end of sales is not just signing a contract with the client. When do we finish a sale fully? Only when the money arrives in our company account. Our sales process is only complete once we get the cash.', cn: '销售的结束不仅仅是和客户签合同。我们什么时候才算真正完成一笔销售？只有当钱到达我们公司账户的时候。我们的销售流程只有在收到款项后才算完成。'},
+    {en: 'This is the full end-to-end sales system our team uses every day.', cn: '这就是我们团队每天使用的端到端销售系统。'},
+    {en: 'Over these two days, we will hold a workshop together. We will all work as a group to build our own sales system, made to fit CTI\'s needs.', cn: '在这两天里，我们将一起举办一个工作坊。我们将作为一个团队共同构建适合CTI需求的销售系统。'},
+    {en: 'Four Basic Core Ideas', cn: '四个基本核心理念'},
+    {en: 'Before we look deep into the sales system, let us agree on four simple key rules to guide our work.', cn: '在我们深入研究销售系统之前，让我们先确定四条指导工作的简单关键规则。'},
+    {en: 'Rule 1: Choosing the right sales people is more important than training everyone', cn: '规则一：选择正确的人比培训所有人更重要'},
+    {en: 'First question: Do we make good sales staff through training, or by picking the right people from the start?', cn: '第一个问题：我们是通过培训打造优秀的销售人员，还是从一开始就选对人？'},
+    {en: 'Our clear view: training helps sales people grow, but good selection is more important.', cn: '我们的明确观点：培训能帮助销售人员成长，但好的选拔更重要。'},
+    {en: 'In fact, training acts as a way to test and filter our team. We use training to find which workers fit sales roles and can create good results.', cn: '事实上，培训是一种测试和筛选我们团队的方式。我们通过培训来发现哪些员工适合销售岗位并能创造好的业绩。'},
+    {en: 'You may ask: how can training help us select strong sales people? Let me give you an easy example.', cn: '你可能会问：培训怎么能帮我们选拔优秀的销售人员？让我给你举个简单的例子。'},
+    {en: 'Suppose we want to check if a sales worker can speak clearly and explain our services well. Should we wait until they meet a real client to find this out?', cn: '假设我们想检查一个销售人员是否能够清晰地表达并很好地解释我们的服务。我们是否应该等他们见到真正的客户才发现这个问题？'},
+    {en: 'This would be a mistake. If they struggle in front of a client, we lose deals and hurt our total sales. This is why we run practice talks and role-play exercises before any team member meets clients.', cn: '这将是一个错误。如果他们在客户面前表现不佳，我们就会失去订单，损害整体销售。这就是为什么我们在团队成员见客户之前要进行演练和角色扮演。'},
+    {en: 'During these practice sessions, we see each person\'s strengths and weaknesses. We can easily judge who has the right skills for sales.', cn: '在这些练习中，我们能看到每个人的优点和缺点。我们可以很容易地判断谁具备适合销售的技能。'},
+    {en: 'If selection is so important, what rules do we use to pick good sales staff?', cn: '如果选拔如此重要，我们用什么规则来挑选优秀的销售人员？'},
+    {en: 'We use a simple model for the personal qualities all sales people need. Our manager Zhou Lu created this model after many years of leading sales teams and real work experience.', cn: '我们用一个简单的模型来描述所有销售人员需要的个人特质。我们的经理周璐在领导销售团队多年并积累了实际工作经验后创建了这个模型。'},
+    {en: 'We call it the Two Forces, Three Traits Diamond Model.', cn: '我们称之为"两力三质钻石模型"。'},
+    {en: 'Let us watch a short video to learn more about this model.', cn: '让我们看一个短视频来了解更多关于这个模型的信息。'},
+    {en: 'As you will see in the video, these personal qualities form over a person\'s whole life. They come from every person you meet, every book you read, every experience you have, and even small natural differences between people. These qualities cannot be learned quickly in a few training days.', cn: '正如你将在视频中看到的，这些个人特质是在一个人的整个一生中形成的。它们来自你遇到的每个人、读过的每本书、拥有的每次经历，甚至是人与人之间微小的天生差异。这些特质无法在几天的培训中快速习得。'},
+    {en: 'This gives us our first core rule: you can only make a fine diamond if you start with good rough stone. Top sales people are always found and chosen carefully first.', cn: '这给了我们第一条核心规则：只有好的原石才能打磨出精美的钻石。顶尖的销售人员永远是先被发现和精心挑选出来的。'},
+    {en: 'Rule 2: Think about how clients buy, not only how we sell', cn: '规则二：思考客户如何购买，而不仅仅是我们如何销售'},
+    {en: 'Now our second rule. Let us ask: do clients sign contracts because we sell well, or because they already need to buy something?', cn: '现在来看第二条规则。我们问一下：客户签合同是因为我们销售得好，还是因为他们本来就需要购买？'},
+    {en: 'Maybe they had a need, and we arrived at the right time? Or maybe the client did not know they needed our service, and our sales work helped them see their problem?', cn: '也许他们本来就有需求，而我们恰好在合适的时机出现？又或者客户并不知道他们需要我们的服务，是我们的销售工作帮他们看到了问题？'},
+    {en: 'Have you heard the short story about selling combs to monks? I will tell you simply. Long ago, there was a temple on a mountain. The monks living there had no hair at all. A man who sold combs visited the temple and wanted to sell his goods to them. At first, this seemed impossible – monks have no hair to brush.', cn: '你听说过向和尚卖梳子的故事吗？我简单给你讲讲。很久以前，山上有一座寺庙。那里的和尚根本没有头发。一个卖梳子的人来到寺庙，想向他们推销他的商品。起初，这似乎是不可能的——和尚没有头发可梳。'},
+    {en: 'But the seller watched the temple visitors carefully. He saw many visitors came to the temple and wanted small blessed items to take home. The seller spoke to the temple leader. He suggested blessing each comb so visitors could buy them as lucky gifts. Very soon, all his combs sold out.', cn: '但这位卖梳子的人仔细观察了来寺庙的访客。他看到很多访客来到寺庙，想要一些开过光的小物件带回家。卖梳子的人和寺庙的住持商量。他建议给每把梳子开光，这样访客就可以把它们当作吉祥物买回去。很快，他的梳子就全部卖光了。'},
+    {en: 'This story shows what good selling means: we help clients understand their own needs clearly. This is why we must always learn about our clients deeply, just like that clever comb seller.', cn: '这个故事展示了什么是好的销售：我们帮助客户清楚地理解他们自己的需求。这就是为什么我们必须像那个聪明的卖梳人一样，深入了解我们的客户。'},
+    {en: 'Let us list the standard six steps every client follows when they buy our services:', cn: '让我们列出客户购买我们服务时遵循的六个标准步骤：'},
+    {en: 'They find a problem they need to solve (their pain point)', cn: '他们发现需要解决的问题（痛点）'},
+    {en: 'They discuss this problem inside their company, and turn it into an official project request', cn: '他们在公司内部讨论这个问题，并将其转化为正式的项目需求'},
+    {en: 'They start looking for service providers', cn: '他们开始寻找服务提供商'},
+    {en: 'They compare all the providers they find', cn: '他们比较所有找到的服务商'},
+    {en: 'They talk about prices and contract details', cn: '他们讨论价格和合同细节'},
+    {en: 'They sign the official contract', cn: '他们签署正式合同'},
+    {en: 'During all six steps, clients only focus on four main things: project risks, price, their own need, and our products and services.', cn: '在这六个步骤中，客户只关注四件事：项目风险、价格、自身需求以及我们的产品和服务。'},
+    {en: 'Let us look at each point one by one:', cn: '让我们逐一来看每个方面：'},
+    {en: 'Project risks: clients do not worry about risks equally at every stage. They start to think a lot about possible risks once the project moves to delivery. They fear problems while we deliver our work for them.', cn: '项目风险：客户并非在每个阶段都同样担心风险。一旦项目进入交付阶段，他们就开始大量考虑可能的风险。他们担心我们在为他们交付工作的过程中出现问题。'},
+    {en: 'Price: clients care about price at every step. At the very start, they check the total cost to see if their company has enough budget for the project. When comparing providers, they look for the best balance of quality and cost. At the final talks before signing, they check all price details again. Price stays a sensitive topic from start to finish.', cn: '价格：客户在每一步都在意价格。一开始，他们会检查总成本，看公司是否有足够的预算。在比较服务商时，他们寻找质量和成本的最佳平衡。在签约前的最后谈判中，他们会再次检查所有价格细节。价格自始至终都是一个敏感话题。'},
+    {en: 'client\'s own need: They focus most on defining their exact need in the first step. Once they start searching for providers, their need is fixed and written into a clear project plan.', cn: '客户自身需求：他们在第一步最关注的是确定自己的确切需求。一旦他们开始寻找服务商，需求就已经确定并写入明确的项目计划中。'},
+    {en: 'Our products and services: clients pay the most attention to our work when they compare different providers. Even after signing the contract, they check if our service matches all the promises we made.', cn: '我们的产品和服务：客户在比较不同服务商时最关注我们的工作。即使在签合同之后，他们也会检查我们的服务是否匹配我们做出的所有承诺。'},
+    {en: 'Now think about this: if we draw the full buying process from the client\'s point of view, what can we learn? Would you talk about the same topics with a client when they are just creating their project request, compared to when they are choosing between providers?', cn: '现在想想：如果我们从客户的角度画出完整的购买过程，我们能学到什么？当客户正在创建项目需求时，和在他们选择服务商时，你会谈论同样的话题吗？'},
+    {en: 'The answer is no. Their main worries change at each stage. So we must talk about whatever the client cares about most in that moment. This is the easiest way to make them trust us.', cn: '答案是否定的。他们主要的担忧在每个阶段都会变化。所以我们必须谈论客户在那个时刻最关心的事情。这是让他们信任我们最简单的方式。'},
+    {en: 'Many of our sales team notice this pattern: you talk to a client about a possible project in the first half of the year, and they show no interest. Six months later, you mention the same project again, and they are fully interested. The simple reason is their buying process has moved forward, and their company\'s internal needs have changed.', cn: '我们很多销售团队都注意到这个模式：你在上半年和一个客户谈一个可能的项目，他们毫无兴趣。六个月后，你再次提起同一个项目，他们却非常感兴趣。原因很简单：他们的采购流程向前推进了，公司内部的需求也发生了变化。'},
+    {en: 'This is why we must first find out which buying stage the client is in. Only then can we plan the right sales actions to take next.', cn: '这就是为什么我们必须首先弄清楚客户处于哪个采购阶段。只有这样，我们才能规划接下来要采取的正确的销售行动。'},
+    {en: 'A truly good sales person does not push clients to buy our service. Instead, they help clients move smoothly through their own buying process.', cn: '真正好的销售不会强迫客户购买我们的服务。相反，他们帮助客户顺利地推进他们自己的购买过程。'},
+    {en: 'That is our second core rule: do not only focus on how to sell – focus on how the client buys.', cn: '这就是我们的第二条核心规则：不要只关注怎么卖——要关注客户怎么买。'},
+    {en: 'Rule 3: Sales work is a structured process, not just natural talent', cn: '规则三：销售工作是一个结构化的流程，而不仅仅是天赋'},
+    {en: 'Third rule: Can we plan every step of sales work? Is selling only a natural creative skill, or can we build it like a clear factory line?', cn: '第三条规则：我们能规划销售工作的每一步吗？销售仅仅是一种天生的创造性技能，还是我们可以像流水线一样构建它？'},
+    {en: 'Imagine sales as a simple production line. Every stage on this line needs clear rules:', cn: '把销售想象成一条简单的生产线。这条线上的每个阶段都需要明确的规则：'},
+    {en: 'Clear requirements to begin the stage', cn: '开始该阶段的明确要求'},
+    {en: 'Clear results you must reach to finish the stage', cn: '完成该阶段必须达到的明确结果'},
+    {en: 'Fixed sales tasks to complete', cn: '需要完成的固定销售任务'},
+    {en: 'Clear documents you need to produce', cn: '需要产出的明确文档'},
+    {en: 'Target success rates and time limits for each step', cn: '每个步骤的目标成功率和时间限制'},
+    {en: 'If sales works like a production line, everything becomes easy to see. Sales ability is not some hidden talent only a few people have. Sales managers do not wait until the end of the quarter to fix bad results. Sales success no longer depends on luck or personal feeling.', cn: '如果销售像生产线一样运作，一切就变得清晰可见。销售能力并不是只有少数人才拥有的隐藏天赋。销售经理不需要等到季度末才去修正糟糕的结果。销售成功不再依赖于运气或个人感觉。'},
+    {en: 'Rule 4: Give targeted support to sales staff, manage using clear processes', cn: '规则四：给销售人员提供有针对性的支持，用清晰的流程进行管理'},
+    {en: 'Our fourth and final rule: If a sales worker\'s results are poor, extra pressure only makes them stressed. It will not help them improve. If we cannot see every step of their sales work, we only find problems when it is too late to fix them.', cn: '我们的第四条也是最后一条规则：如果销售人员的业绩不佳，施加额外压力只会让他们更焦虑，不会帮助他们改进。如果我们看不到他们销售工作的每一步，我们就只能在问题已经无法挽回时才发现。'},
+    {en: 'Let us use a simple comparison. If you want to stretch a rubber band far, you cannot only pull hard. You also need to make the band thicker and stronger. It is the same for sales teams. To make sales people more effective, we give them targeted support, and fix exactly the skills they lack.', cn: '让我们用一个简单的类比。如果你想拉伸一根橡皮筋，光用力拉是不够的。你还需要让橡皮筋变得更厚更结实。销售团队也是同样道理。要让销售人员更高效，我们要提供有针对性的支持，精准弥补他们缺少的技能。'},
+    {en: 'We watch every key task they finish in the sales process. We spot which steps they struggle with, then give focused training and help only for those weak points. This lets us improve their skills quickly, without wasting time on general training that does not match their gaps.', cn: '我们观察他们在销售流程中完成的每一项关键任务。我们识别出他们在哪些环节遇到困难，然后只针对这些薄弱环节提供重点培训和帮助。这样我们就能快速提升他们的技能，而不会把时间浪费在不符合他们需求的一般性培训上。'},
+    {en: 'To offer this targeted support, we first need a full support system built around every step of our sales process.', cn: '要提供这种有针对性的支持，我们首先需要建立一个围绕销售流程每一步的完整支持体系。'},
+    {en: 'Full CTI Sales System Framework', cn: '完整的CTI销售系统框架'},
+    {en: 'Now that we all understand these four core ideas, let us look at the full structure of our sales system.', cn: '既然我们都理解了这四个核心理念，现在让我们看看销售系统的完整结构。'},
+    {en: 'First, we will cover the basic logic behind our sales method. We take successful working methods from Huawei, and combine them with Michael Porter\'s well-known value chain idea.', cn: '首先，我们会介绍销售方法背后的基本逻辑。我们借鉴华为的成功做法，并将其与迈克尔·波特著名的价值链理念相结合。'},
+    {en: 'Let us watch a short video to walk through all our core ideas together.', cn: '让我们看一个短视频，一起回顾我们的核心理念。'},
+    {en: 'Please remember these three simple key statements:', cn: '请记住这三个简单的关键陈述：'},
+    {en: 'Every important business activity has its own value chain', cn: '每一项重要的业务活动都有自己的价值链'},
+    {en: 'Every value chain has clear key sales tasks', cn: '每一个价值链都有清晰的关键销售任务'},
+    {en: 'Every key sales task has supporting tools and resources', cn: '每一个关键销售任务都有配套的工具和资源'},
+    {en: 'We can draw all these ideas onto a simple work canvas. All our business work exists to create value for clients. First, we clarify two points: who are our clients, and what problems do they have? Then we work out what value we can offer to fix those problems and meet their needs. Next, we design a value chain that lets us deliver that value to clients. Finally, we split this chain into core daily tasks and supporting background tasks.', cn: '我们可以把所有这些想法画在一张简单的工作画布上。我们所有的业务工作都是为了为客户创造价值。首先，我们明确两点：我们的客户是谁，他们有什么问题？然后我们思考能够提供什么价值来解决这些问题、满足他们的需求。接下来，我们设计一个价值链来把价值传递给客户。最后，我们把这条链拆分为核心日常任务和支持性后台任务。'},
+    {en: 'We split all supporting tasks into three simple groups:', cn: '我们把所有支持性任务分为三个简单的组：'},
+    {en: 'KMCT support: Knowledge, clear work methods (processes), real case studies, and practical tools that help sales people finish their key tasks', cn: 'KMCT支持：知识、清晰的工作方法（流程）、真实案例研究以及帮助销售人员完成关键任务的实用工具'},
+    {en: 'Sales management tasks: All work managers do to make sure sales staff complete their core tasks correctly', cn: '销售管理任务：管理人员为确保销售人员正确完成核心任务所做的所有工作'},
+    {en: 'Performance review system: Rules that reward every sales worker who completes all required key tasks well', cn: '绩效考评体系：奖励每位出色完成所有关键任务的销售人员的规则'},
+    {en: 'All three groups support each other step by step, one layer supporting the next. We can show this with a simple example from our presentation slides.', cn: '这三个组互相支持，层层递进。我们可以通过演示幻灯片中的一个简单例子来展示这一点。'},
+    {en: 'Value Chain Basic Logic & Huawei\'s LTC Example', cn: '价值链基本逻辑与华为的LTC案例'},
+    {en: 'We have spoken about Huawei many times today, so let us look at how their Lead-to-Cash (LTC) system works in real practice.', cn: '今天我们已经多次提到华为，现在就来看看他们的"从线索到现金"（LTC）系统在实际中是如何运作的。'},
+    {en: 'When Huawei first put this system in place, their yearly income was 1.5 billion. Today, their annual revenue reaches around 900 billion.', cn: '华为最初实施这个系统时，年收入是15亿。如今，他们的年收入已达到约9000亿。'},
+    {en: 'Their full sales process has eight clear stages:', cn: '他们的完整销售流程有八个清晰的阶段：'},
+    {en: 'Find sales leads', cn: '寻找销售线索'},
+    {en: 'Check if client needs are real', cn: '检查客户需求是否真实'},
+    {en: 'Show our solution to the client', cn: '向客户展示我们的解决方案'},
+    {en: 'Answer client doubts and questions', cn: '解答客户的疑虑和问题'},
+    {en: 'Guide the client\'s decision-making', cn: '引导客户的决策'},
+    {en: 'Finish the deal and sign the contract', cn: '达成交易并签订合同'},
+    {en: 'Complete the work written in the contract', cn: '完成合同约定的工作'},
+    {en: 'Build long-term relationships to get repeat orders', cn: '建立长期关系以获得重复订单'},
+    {en: 'Everything starts at the lead stage. The matching sales actions are simple: find new clients through three main channels – mining existing client lists (CRA), online industry groups, and offline events. After finding leads, we check the quality of each lead. We track two main numbers: total number of leads, and how much profit each channel brings (ROI). Managers complete matching management tasks: track sales targets, analyse channel profit, set clear lead quality rules, and create warning systems for slow lead progress.', cn: '一切从线索阶段开始。相应的销售行动很简单：通过三个主要渠道寻找新客户——挖掘现有客户名单（CRA）、线上行业群组和线下活动。找到线索后，我们评估每条线索的质量。我们跟踪两个主要指标：线索总数和各渠道的利润率（ROI）。管理人员完成相应的管理任务：跟踪销售目标、分析渠道利润、制定清晰的线索质量标准，并建立线索进度缓慢的预警系统。'},
+    {en: 'The second stage (checking client needs) follows the exact same layered structure, so I will not go into extra detail here.', cn: '第二阶段（检查客户需求）遵循完全相同的分层结构，这里我就不再赘述了。'},
+    {en: 'Huawei did not stop at designing the sales process. They built a matching performance review system to link every task to clear targets.', cn: '华为并没有止步于设计销售流程。他们还建立了一套配套的绩效考评体系，将每项任务与明确的目标联系起来。'},
+    {en: 'Their rule is simple: sales staff targets and manager targets connect directly. Every task links to a review score. If a sales person fails to finish a key task, their manager also receives a review mark for that gap – this means the manager did not give enough support or oversight. This layered, linked support is the core logic of the value chain.', cn: '他们的规则很简单：销售人员的指标与经理的指标直接挂钩。每项任务都与考核分数相关联。如果销售人员未能完成一项关键任务，其经理也会因此项缺失而获得相应的考核扣分——这意味着经理没有给予足够的支持或监督。这种层层关联的支持就是价值链的核心逻辑。'},
+    {en: 'Huawei also uses "Iron Triangle" team sales, with shared team performance scores. Each team member has 70% personal targets and 30% shared team targets. If the whole team misses a goal, every member\'s review score is affected.', cn: '华为还采用"铁三角"团队销售模式，实行团队共享绩效评分。每位团队成员70%为个人指标，30%为团队共享指标。如果整个团队未能达成目标，每位成员的考核分数都会受到影响。'},
+    {en: 'CTI China\'s Own Sales System Practice', cn: 'CTI中国自己的销售系统实践'},
+    {en: 'Now we have seen how Huawei, a top industry benchmark, runs their sales process. Let us talk about how we do things here at CTI across China.', cn: '现在我们看到了华为——这个行业顶尖标杆——是如何运作他们的销售流程的。接下来让我们谈谈我们在CTI中国各地是如何做的。'},
+    {en: 'We run group workshops to build our own sales rules and processes together as a team. The company provides base methods and process frameworks, and every team member shares ideas to build something that fits CTI\'s unique work.', cn: '我们通过小组工作坊的形式，与团队一起建立我们自己的销售规则和流程。公司提供基础方法和流程框架，每位团队成员分享想法，共同构建适合CTI独特工作方式的东西。'},
+    {en: 'This slide shows CTI Certification\'s own sales process framework. All of us created this together, and we call it the 3R Sales Process.', cn: '这张幻灯片展示了CTI Certification自己的销售流程框架。这是我们所有人共同创建的，我们称之为"3R销售流程"。'},
+    {en: 'The 3R Sales Model puts clients at the centre, with three repeating work cycles:', cn: '3R销售模式以客户为中心，包含三个重复的工作循环：'},
+    {en: 'First cycle: Grow your pool of possible clients. Choose which clients to focus on, find people inside their company who can share information, talk to all relevant staff, and locate the main person who makes buying decisions.', cn: '第一个循环：扩大潜在客户池。选择要重点跟进的客户，找到他们公司内部可以分享信息的人，与所有相关人员沟通，并定位主要的采购决策者。'},
+    {en: 'Second cycle: Clearly understand what the client really wants (their core motivations and what points will influence them). Learn everything about their business and our competitors, then plan a set of connected sales actions to match their needs.', cn: '第二个循环：清晰理解客户真正想要什么（他们的核心动机和影响因素）。了解他们的业务和我们的竞争对手，然后制定一套与他们的需求相匹配的连贯销售行动。'},
+    {en: 'Third cycle: Match your work style to what the client likes. Look past surface requests to understand their real goals. Build strong, trusted relationships with key decision-makers. Deliver full service that leaves them fully satisfied, with good results inside their team and clear public benefits from our work.', cn: '第三个循环：使你的工作风格符合客户的偏好。透过表面需求理解他们的真实目标。与关键决策者建立牢固的信任关系。提供让他们完全满意的全方位服务，在他们的团队内部产生良好成果，并通过我们的工作带来明显的公共效益。'},
+    {en: 'Closing', cn: '结束语'},
+    {en: 'Over these two workshop days, we will work side by side to finish building our full custom sales system together.', cn: '在这两天的工作坊中，我们将并肩合作，共同完成我们完整定制销售系统的建设。'},
+    {en: 'Thank you all for listening.', cn: '感谢大家的聆听。'}
+];
+
+const wordDict = {
+    "ability": {cn: "能力", ph: "/əˈbɪləti/"},
+    "about": {cn: "关于；大约", ph: "/əˈbaʊt/"},
+    "account": {cn: "账户", ph: "/əˈkaʊnt/"},
+    "actions": {cn: "行动（复数）", ph: "/ˈækʃənz/"},
+    "activity": {cn: "活动", ph: "/ækˈtɪvəti/"},
+    "acts": {cn: "充当；行动（第三人称）", ph: "/ækts/"},
+    "affected": {cn: "受影响的", ph: "/əˈfektɪd/"},
+    "after": {cn: "在……之后", ph: "/ˈæftər/"},
+    "again": {cn: "再次", ph: "/əˈɡen/"},
+    "ago": {cn: "以前", ph: "/əˈɡoʊ/"},
+    "agree": {cn: "同意；达成一致", ph: "/əˈɡriː/"},
+    "all": {cn: "全部；所有", ph: "/ɔːl/"},
+    "already": {cn: "已经", ph: "/ɔːlˈredi/"},
+    "always": {cn: "总是；一直", ph: "/ˈɔːlweɪz/"},
+    "analysis": {cn: "分析", ph: "/əˈnæləsɪs/"},
+    "annual": {cn: "年度的", ph: "/ˈænjuəl/"},
+    "answer": {cn: "答案；回答", ph: "/ˈænsər/"},
+    "around": {cn: "大约；围绕", ph: "/əˈraʊnd/"},
+    "arrived": {cn: "到达（过去式）", ph: "/əˈraɪvd/"},
+    "arrives": {cn: "到达（第三人称）", ph: "/əˈraɪvz/"},
+    "ask": {cn: "问；询问", ph: "/æsk/"},
+    "attention": {cn: "注意力", ph: "/əˈtenʃən/"},
+    "background": {cn: "背景", ph: "/ˈbækɡraʊnd/"},
+    "bad": {cn: "糟糕的", ph: "/bæd/"},
+    "balance": {cn: "平衡", ph: "/ˈbæləns/"},
+    "band": {cn: "带子；乐队", ph: "/bænd/"},
+    "base": {cn: "基础", ph: "/beɪs/"},
+    "basic": {cn: "基本的", ph: "/ˈbeɪsɪk/"},
+    "because": {cn: "因为", ph: "/bɪˈkɔːz/"},
+    "before": {cn: "在……之前", ph: "/bɪˈfɔːr/"},
+    "benchmark": {cn: "标杆；基准", ph: "/ˈbentʃmɑːrk/"},
+    "benefits": {cn: "效益；好处（复数）", ph: "/ˈbenɪfɪts/"},
+    "best": {cn: "最好的", ph: "/best/"},
+    "between": {cn: "在……之间", ph: "/bɪˈtwiːn/"},
+    "billion": {cn: "十亿", ph: "/ˈbɪljən/"},
+    "blessed": {cn: "受祝福的；开过光的", ph: "/ˈblesɪd/"},
+    "blessing": {cn: "祝福；开光", ph: "/ˈblesɪŋ/"},
+    "book": {cn: "书", ph: "/bʊk/"},
+    "brings": {cn: "带来（第三人称）", ph: "/brɪŋz/"},
+    "brush": {cn: "梳；刷", ph: "/brʌʃ/"},
+    "budget": {cn: "预算", ph: "/ˈbʌdʒɪt/"},
+    "build": {cn: "建立；构建", ph: "/bɪld/"},
+    "business": {cn: "业务；商业", ph: "/ˈbɪznəs/"},
+    "buy": {cn: "购买", ph: "/baɪ/"},
+    "call": {cn: "称呼；打电话", ph: "/kɔːl/"},
+    "called": {cn: "被称为", ph: "/kɔːld/"},
+    "came": {cn: "来（come过去式）", ph: "/keɪm/"},
+    "cannot": {cn: "不能", ph: "/ˈkænɑːt/"},
+    "canvas": {cn: "画布", ph: "/ˈkænvəs/"},
+    "care": {cn: "关心；在意", ph: "/ker/"},
+    "carefully": {cn: "仔细地；精心地", ph: "/ˈkerəfəli/"},
+    "cares": {cn: "关心（第三人称）", ph: "/kerz/"},
+    "cash": {cn: "现金", ph: "/kæʃ/"},
+    "centre": {cn: "中心", ph: "/ˈsentər/"},
+    "certification": {cn: "认证", ph: "/ˌsɜːrtɪfɪˈkeɪʃən/"},
+    "chain": {cn: "链", ph: "/tʃeɪn/"},
+    "change": {cn: "变化；改变", ph: "/tʃeɪndʒ/"},
+    "channels": {cn: "渠道（复数）", ph: "/ˈtʃænəlz/"},
+    "check": {cn: "检查；核对", ph: "/tʃek/"},
+    "choosing": {cn: "选择（现在分词）", ph: "/ˈtʃuːzɪŋ/"},
+    "chosen": {cn: "选择（choose过去分词）", ph: "/ˈtʃoʊzən/"},
+    "clarify": {cn: "澄清；明确", ph: "/ˈklærəfaɪ/"},
+    "clearly": {cn: "清晰地", ph: "/ˈklɪrli/"},
+    "clever": {cn: "聪明的", ph: "/ˈklevər/"},
+    "client": {cn: "客户；委托人", ph: "/ˈklaɪənt/"},
+    "closing": {cn: "结束语", ph: "/ˈkloʊzɪŋ/"},
+    "comb": {cn: "梳子", ph: "/koʊm/"},
+    "combine": {cn: "结合；合并", ph: "/kəmˈbaɪn/"},
+    "combs": {cn: "梳子（复数）", ph: "/koʊmz/"},
+    "comes": {cn: "来自（第三人称）", ph: "/kʌmz/"},
+    "company": {cn: "公司", ph: "/ˈkʌmpəni/"},
+    "compare": {cn: "比较", ph: "/kəmˈper/"},
+    "compared": {cn: "比较（过去分词）", ph: "/kəmˈperd/"},
+    "comparing": {cn: "比较（现在分词）", ph: "/kəmˈperɪŋ/"},
+    "comparison": {cn: "类比；比较", ph: "/kəmˈpærɪsən/"},
+    "competitors": {cn: "竞争对手（复数）", ph: "/kəmˈpetɪtərz/"},
+    "complete": {cn: "完整的；完成", ph: "/kəmˈpliːt/"},
+    "connected": {cn: "连接的；连贯的", ph: "/kəˈnektɪd/"},
+    "contract": {cn: "合同", ph: "/ˈkɑːntrækt/"},
+    "core": {cn: "核心的", ph: "/kɔːr/"},
+    "correctly": {cn: "正确地", ph: "/kəˈrektli/"},
+    "cost": {cn: "成本", ph: "/kɔːst/"},
+    "covers": {cn: "涵盖；包括", ph: "/ˈkʌvərz/"},
+    "create": {cn: "创造；产生", ph: "/kriˈeɪt/"},
+    "created": {cn: "创造（过去式）", ph: "/kriˈeɪtɪd/"},
+    "creative": {cn: "创造性的", ph: "/kriˈeɪtɪv/"},
+    "custom": {cn: "定制的", ph: "/ˈkʌstəm/"},
+    "customer": {cn: "顾客；客户", ph: "/ˈkʌstəmər/"},
+    "cycles": {cn: "循环（复数）", ph: "/ˈsaɪkəlz/"},
+    "daily": {cn: "日常的", ph: "/ˈdeɪli/"},
+    "day": {cn: "天；日子", ph: "/deɪ/"},
+    "deal": {cn: "交易；协议", ph: "/diːl/"},
+    "deals": {cn: "交易；订单", ph: "/diːlz/"},
+    "decision-makers": {cn: "决策者（复数）", ph: "/dɪˈsɪʒən ˈmeɪkərz/"},
+    "decision-making": {cn: "决策", ph: "/dɪˈsɪʒən ˈmeɪkɪŋ/"},
+    "deep": {cn: "深的；深入地", ph: "/diːp/"},
+    "deeply": {cn: "深入地", ph: "/ˈdiːpli/"},
+    "defining": {cn: "定义（现在分词）", ph: "/dɪˈfaɪnɪŋ/"},
+    "delivery": {cn: "交付；递送", ph: "/dɪˈlɪvəri/"},
+    "depends": {cn: "取决于", ph: "/dɪˈpendz/"},
+    "design": {cn: "设计", ph: "/dɪˈzaɪn/"},
+    "detail": {cn: "细节；详细", ph: "/dɪˈteɪl/"},
+    "details": {cn: "细节（复数）", ph: "/dɪˈteɪlz/"},
+    "development": {cn: "发展；开发", ph: "/dɪˈveləpmənt/"},
+    "diamond": {cn: "钻石", ph: "/ˈdaɪəmənd/"},
+    "differences": {cn: "差异（复数）", ph: "/ˈdɪfərənsɪz/"},
+    "different": {cn: "不同的", ph: "/ˈdɪfərənt/"},
+    "discuss": {cn: "讨论", ph: "/dɪˈskʌs/"},
+    "documents": {cn: "文档（复数）", ph: "/ˈdɑːkjumənts/"},
+    "does": {cn: "做（第三人称）", ph: "/dʌz/"},
+    "doubts": {cn: "疑虑（复数）", ph: "/daʊts/"},
+    "draw": {cn: "画；绘制", ph: "/drɔː/"},
+    "during": {cn: "在……期间", ph: "/ˈdjʊrɪŋ/"},
+    "each": {cn: "每个", ph: "/iːtʃ/"},
+    "earlier": {cn: "更早的", ph: "/ˈɜːrliər/"},
+    "early": {cn: "早的；早期的", ph: "/ˈɜːrli/"},
+    "easiest": {cn: "最容易的", ph: "/ˈiːziɪst/"},
+    "easily": {cn: "容易地", ph: "/ˈiːzɪli/"},
+    "effective": {cn: "有效的；高效的", ph: "/ɪˈfektɪv/"},
+    "enough": {cn: "足够的", ph: "/ɪˈnʌf/"},
+    "equally": {cn: "同等地", ph: "/ˈiːkwəli/"},
+    "even": {cn: "甚至", ph: "/ˈiːvən/"},
+    "events": {cn: "活动；事件（复数）", ph: "/ɪˈvents/"},
+    "every": {cn: "每一个", ph: "/ˈevri/"},
+    "everyone": {cn: "每个人；大家", ph: "/ˈevriwʌn/"},
+    "everything": {cn: "一切；所有事物", ph: "/ˈevriθɪŋ/"},
+    "exact": {cn: "确切的", ph: "/ɪɡˈzækt/"},
+    "example": {cn: "例子", ph: "/ɪɡˈzæmpəl/"},
+    "exercises": {cn: "练习；训练", ph: "/ˈeksərsaɪzɪz/"},
+    "exist": {cn: "存在", ph: "/ɪɡˈzɪst/"},
+    "existing": {cn: "现有的", ph: "/ɪɡˈzɪstɪŋ/"},
+    "experience": {cn: "经验；经历", ph: "/ɪkˈspɪriəns/"},
+    "explain": {cn: "解释；说明", ph: "/ɪkˈspleɪn/"},
+    "extra": {cn: "额外的", ph: "/ˈekstrə/"},
+    "fact": {cn: "事实", ph: "/fækt/"},
+    "factory": {cn: "工厂", ph: "/ˈfæktəri/"},
+    "fails": {cn: "失败（第三人称）", ph: "/feɪlz/"},
+    "fear": {cn: "害怕；担心", ph: "/fɪr/"},
+    "feeling": {cn: "感觉", ph: "/ˈfiːlɪŋ/"},
+    "few": {cn: "少量的；几个", ph: "/fjuː/"},
+    "filter": {cn: "筛选；过滤", ph: "/ˈfɪltər/"},
+    "final": {cn: "最终的", ph: "/ˈfaɪnəl/"},
+    "final rule": {cn: "最后一条规则", ph: "/ˈfaɪnəl ruːl/"},
+    "finding": {cn: "找到；发现", ph: "/ˈfaɪndɪŋ/"},
+    "fine": {cn: "精美的；好的", ph: "/faɪn/"},
+    "finish": {cn: "完成；结束", ph: "/ˈfɪnɪʃ/"},
+    "first": {cn: "第一；首先", ph: "/fɜːrst/"},
+    "fit": {cn: "适合", ph: "/fɪt/"},
+    "fix": {cn: "修正；修理", ph: "/fɪks/"},
+    "fixed": {cn: "固定的", ph: "/fɪkst/"},
+    "focus": {cn: "聚焦；关注", ph: "/ˈfoʊkəs/"},
+    "focused": {cn: "聚焦的；专注的", ph: "/ˈfoʊkəst/"},
+    "focuses": {cn: "聚焦；集中（第三人称）", ph: "/ˈfoʊkəsɪz/"},
+    "follows": {cn: "遵循（第三人称）", ph: "/ˈfɑːloʊz/"},
+    "forces": {cn: "力量（复数）", ph: "/ˈfɔːrsɪz/"},
+    "forward": {cn: "向前", ph: "/ˈfɔːrwərd/"},
+    "found": {cn: "发现（find过去式）", ph: "/faʊnd/"},
+    "four": {cn: "四", ph: "/fɔːr/"},
+    "framework": {cn: "框架", ph: "/ˈfreɪmwɜːrk/"},
+    "front": {cn: "前面", ph: "/frʌnt/"},
+    "full": {cn: "全部的；完整的", ph: "/fʊl/"},
+    "fully": {cn: "完全地", ph: "/ˈfʊli/"},
+    "gaps": {cn: "差距；缺口（复数）", ph: "/ɡæps/"},
+    "general": {cn: "一般的；普遍的", ph: "/ˈdʒenərəl/"},
+    "gifts": {cn: "礼物（复数）", ph: "/ɡɪfts/"},
+    "goal": {cn: "目标", ph: "/ɡoʊl/"},
+    "goals": {cn: "目标（复数）", ph: "/ɡoʊlz/"},
+    "good": {cn: "好的；优秀的", ph: "/ɡʊd/"},
+    "goods": {cn: "商品；货物", ph: "/ɡʊdz/"},
+    "group": {cn: "组；集团", ph: "/ɡruːp/"},
+    "groups": {cn: "组（复数）", ph: "/ɡruːps/"},
+    "grow": {cn: "成长；增长", ph: "/ɡroʊ/"},
+    "guide": {cn: "指导；引导", ph: "/ɡaɪd/"},
+    "hair": {cn: "头发", ph: "/her/"},
+    "half": {cn: "一半", ph: "/hæf/"},
+    "happy": {cn: "高兴的；快乐的", ph: "/ˈhæpi/"},
+    "hard": {cn: "用力地；困难地", ph: "/hɑːrd/"},
+    "heard": {cn: "听到（hear过去式）", ph: "/hɜːrd/"},
+    "hello": {cn: "你好", ph: "/həˈloʊ/"},
+    "helped": {cn: "帮助（过去式）", ph: "/helpt/"},
+    "helps": {cn: "帮助（第三人称）", ph: "/helps/"},
+    "hidden": {cn: "隐藏的", ph: "/ˈhɪdən/"},
+    "his": {cn: "他的", ph: "/hɪz/"},
+    "hold": {cn: "举办；持有", ph: "/hoʊld/"},
+    "home": {cn: "家", ph: "/hoʊm/"},
+    "how": {cn: "如何；怎样", ph: "/haʊ/"},
+    "hurt": {cn: "伤害；损害", ph: "/hɜːrt/"},
+    "idea": {cn: "想法；理念", ph: "/aɪˈdiːə/"},
+    "imagine": {cn: "想象", ph: "/ɪˈmædʒɪn/"},
+    "important": {cn: "重要的", ph: "/ɪmˈpɔːrtənt/"},
+    "impossible": {cn: "不可能的", ph: "/ɪmˈpɑːsəbəl/"},
+    "improve": {cn: "改进；提高", ph: "/ɪmˈpruːv/"},
+    "income": {cn: "收入", ph: "/ˈɪnkʌm/"},
+    "influence": {cn: "影响", ph: "/ˈɪnfluəns/"},
+    "inside": {cn: "在……内部", ph: "/ˌɪnˈsaɪd/"},
+    "instead": {cn: "相反；代替", ph: "/ɪnˈsted/"},
+    "interest": {cn: "兴趣；利益", ph: "/ˈɪntrəst/"},
+    "internal": {cn: "内部的", ph: "/ɪnˈtɜːrnəl/"},
+    "into": {cn: "进入", ph: "/ˈɪntuː/"},
+    "iron": {cn: "铁", ph: "/ˈaɪərn/"},
+    "items": {cn: "物品（复数）", ph: "/ˈaɪtəmz/"},
+    "judge": {cn: "判断；评判", ph: "/dʒʌdʒ/"},
+    "key": {cn: "关键的；钥匙", ph: "/kiː/"},
+    "know": {cn: "知道", ph: "/noʊ/"},
+    "knowledge": {cn: "知识", ph: "/ˈnɑːlɪdʒ/"},
+    "lack": {cn: "缺乏；缺少", ph: "/læk/"},
+    "large": {cn: "大的", ph: "/lɑːrdʒ/"},
+    "late": {cn: "迟的；晚的", ph: "/leɪt/"},
+    "later": {cn: "后来；之后", ph: "/ˈleɪtər/"},
+    "layered": {cn: "分层的", ph: "/ˈleɪərd/"},
+    "layers": {cn: "层（复数）", ph: "/ˈleɪərz/"},
+    "lead": {cn: "线索；领导", ph: "/liːd/"},
+    "leader": {cn: "领导；领袖", ph: "/ˈliːdər/"},
+    "leading": {cn: "领导（现在分词）", ph: "/ˈliːdɪŋ/"},
+    "learn": {cn: "学习；了解", ph: "/lɜːrn/"},
+    "learned": {cn: "学会（learn过去式）", ph: "/ˈlɜːrnd/"},
+    "learning": {cn: "学习", ph: "/ˈlɜːrnɪŋ/"},
+    "life": {cn: "生活；生命", ph: "/laɪf/"},
+    "limits": {cn: "限制（复数）", ph: "/ˈlɪmɪts/"},
+    "line": {cn: "线；流水线", ph: "/laɪn/"},
+    "linking": {cn: "连接（现在分词）", ph: "/ˈlɪŋkɪŋ/"},
+    "list": {cn: "列出；列表", ph: "/lɪst/"},
+    "listening": {cn: "听（现在分词）", ph: "/ˈlɪsənɪŋ/"},
+    "lists": {cn: "名单（复数）", ph: "/lɪsts/"},
+    "living": {cn: "生活（现在分词）", ph: "/ˈlɪvɪŋ/"},
+    "locate": {cn: "找到；定位", ph: "/ˈloʊkeɪt/"},
+    "logic": {cn: "逻辑", ph: "/ˈlɑːdʒɪk/"},
+    "long": {cn: "长的；长期", ph: "/lɔːŋ/"},
+    "longer": {cn: "更长的", ph: "/ˈlɔːŋɡər/"},
+    "looking": {cn: "寻找（现在分词）", ph: "/ˈlʊkɪŋ/"},
+    "lose": {cn: "失去；丢失", ph: "/luːz/"},
+    "luck": {cn: "运气", ph: "/lʌk/"},
+    "lucky": {cn: "幸运的", ph: "/ˈlʌki/"},
+    "made": {cn: "制造（make过去式）", ph: "/meɪd/"},
+    "main": {cn: "主要的", ph: "/meɪn/"},
+    "man": {cn: "男人；人", ph: "/mæn/"},
+    "manage": {cn: "管理", ph: "/ˈmænɪdʒ/"},
+    "management": {cn: "管理", ph: "/ˈmænɪdʒmənt/"},
+    "manager": {cn: "经理", ph: "/ˈmænɪdʒər/"},
+    "many": {cn: "许多", ph: "/ˈmeni/"},
+    "mark": {cn: "标记；分数", ph: "/mɑːrk/"},
+    "matches": {cn: "匹配（第三人称）", ph: "/ˈmætʃɪz/"},
+    "may": {cn: "可能；可以", ph: "/meɪ/"},
+    "maybe": {cn: "也许", ph: "/ˈmeɪbi/"},
+    "means": {cn: "意味着", ph: "/miːnz/"},
+    "meet": {cn: "见面；满足", ph: "/miːt/"},
+    "member": {cn: "成员", ph: "/ˈmembər/"},
+    "mention": {cn: "提到；提及", ph: "/ˈmenʃən/"},
+    "method": {cn: "方法", ph: "/ˈmeθəd/"},
+    "might": {cn: "可能；也许", ph: "/maɪt/"},
+    "mining": {cn: "挖掘（现在分词）", ph: "/ˈmaɪnɪŋ/"},
+    "misses": {cn: "错过；未达到", ph: "/ˈmɪsɪz/"},
+    "mistake": {cn: "错误", ph: "/mɪˈsteɪk/"},
+    "model": {cn: "模型；模式", ph: "/ˈmɑːdəl/"},
+    "moment": {cn: "时刻；瞬间", ph: "/ˈmoʊmənt/"},
+    "money": {cn: "钱；资金", ph: "/ˈmʌni/"},
+    "monks": {cn: "和尚；僧侣", ph: "/mʌŋks/"},
+    "most": {cn: "最多；最", ph: "/moʊst/"},
+    "motivations": {cn: "动机（复数）", ph: "/ˌmoʊtɪˈveɪʃənz/"},
+    "mountain": {cn: "山", ph: "/ˈmaʊntən/"},
+    "moves": {cn: "移动；推进", ph: "/muːvz/"},
+    "much": {cn: "非常；多", ph: "/mʌtʃ/"},
+    "must": {cn: "必须", ph: "/mʌst/"},
+    "name": {cn: "名字；姓名", ph: "/neɪm/"},
+    "natural": {cn: "自然的；天生的", ph: "/ˈnætʃərəl/"},
+    "needs": {cn: "需求", ph: "/niːdz/"},
+    "neither": {cn: "两者都不", ph: "/ˈniːðər/"},
+    "next": {cn: "下一个", ph: "/nekst/"},
+    "notice": {cn: "通知；注意", ph: "/ˈnoʊtɪs/"},
+    "numbers": {cn: "数字；指标（复数）", ph: "/ˈnʌmbərz/"},
+    "offer": {cn: "提供", ph: "/ˈɔːfər/"},
+    "official": {cn: "正式的", ph: "/əˈfɪʃəl/"},
+    "once": {cn: "一旦", ph: "/wʌns/"},
+    "online": {cn: "在线", ph: "/ˌɑːnˈlaɪn/"},
+    "only": {cn: "只有；仅仅", ph: "/ˈoʊnli/"},
+    "orders": {cn: "订单（复数）", ph: "/ˈɔːrdərz/"},
+    "out": {cn: "出去；向外", ph: "/aʊt/"},
+    "over": {cn: "超过；在……期间", ph: "/ˈoʊvər/"},
+    "oversight": {cn: "监督", ph: "/ˈoʊvərsaɪt/"},
+    "own": {cn: "自己的", ph: "/oʊn/"},
+    "pain": {cn: "痛苦；疼痛", ph: "/peɪn/"},
+    "pattern": {cn: "模式；规律", ph: "/ˈpætərn/"},
+    "pay": {cn: "支付；给予", ph: "/peɪ/"},
+    "payment": {cn: "付款；支付", ph: "/ˈpeɪmənt/"},
+    "people": {cn: "人们；人员", ph: "/ˈpiːpəl/"},
+    "performance": {cn: "绩效；表现", ph: "/pərˈfɔːrməns/"},
+    "person": {cn: "人；个人", ph: "/ˈpɜːrsən/"},
+    "personal": {cn: "个人的", ph: "/ˈpɜːrsənəl/"},
+    "picking": {cn: "挑选（现在分词）", ph: "/ˈpɪkɪŋ/"},
+    "plan": {cn: "计划", ph: "/plæn/"},
+    "point": {cn: "点；要点", ph: "/pɔɪnt/"},
+    "pool": {cn: "池；蓄水池", ph: "/puːl/"},
+    "poor": {cn: "差的；贫穷的", ph: "/pʊr/"},
+    "possible": {cn: "可能的", ph: "/ˈpɑːsəbəl/"},
+    "practical": {cn: "实用的", ph: "/ˈpræktɪkəl/"},
+    "practice": {cn: "实践；实际", ph: "/ˈpræktɪs/"},
+    "pressure": {cn: "压力", ph: "/ˈpreʃər/"},
+    "price": {cn: "价格", ph: "/praɪs/"},
+    "prices": {cn: "价格（复数）", ph: "/ˈpraɪsɪz/"},
+    "problem": {cn: "问题", ph: "/ˈprɑːbləm/"},
+    "processes": {cn: "流程（复数）", ph: "/ˈprɑːsesɪz/"},
+    "produce": {cn: "产出；生产", ph: "/prəˈduːs/"},
+    "production": {cn: "生产", ph: "/prəˈdʌkʃən/"},
+    "products": {cn: "产品（复数）", ph: "/ˈprɑːdʌkts/"},
+    "profit": {cn: "利润", ph: "/ˈprɑːfɪt/"},
+    "progress": {cn: "进展", ph: "/ˈprɑːɡres/"},
+    "project": {cn: "项目", ph: "/ˈprɑːdʒekt/"},
+    "promises": {cn: "承诺（复数）", ph: "/ˈprɑːmɪsɪz/"},
+    "providers": {cn: "提供商（复数）", ph: "/prəˈvaɪdərz/"},
+    "pull": {cn: "拉；拖", ph: "/pʊl/"},
+    "push": {cn: "推动；逼迫", ph: "/pʊʃ/"},
+    "qualities": {cn: "品质；特质", ph: "/ˈkwɑːlətiz/"},
+    "quality": {cn: "质量", ph: "/ˈkwɑːləti/"},
+    "quarter": {cn: "季度", ph: "/ˈkwɔːrtər/"},
+    "question": {cn: "问题", ph: "/ˈkwestʃən/"},
+    "quickly": {cn: "快速地", ph: "/ˈkwɪkli/"},
+    "rates": {cn: "比率（复数）", ph: "/reɪts/"},
+    "reach": {cn: "达到", ph: "/riːtʃ/"},
+    "read": {cn: "阅读", ph: "/riːd/"},
+    "real": {cn: "真正的；真实的", ph: "/riːl/"},
+    "reason": {cn: "原因；理由", ph: "/ˈriːzən/"},
+    "receive": {cn: "收到；接收", ph: "/rɪˈsiːv/"},
+    "relationships": {cn: "关系（复数）", ph: "/rɪˈleɪʃənʃɪps/"},
+    "relevant": {cn: "相关的", ph: "/ˈreləvənt/"},
+    "remember": {cn: "记住", ph: "/rɪˈmembər/"},
+    "repeat": {cn: "重复；再次", ph: "/rɪˈpiːt/"},
+    "request": {cn: "请求；需求", ph: "/rɪˈkwest/"},
+    "requirements": {cn: "要求（复数）", ph: "/rɪˈkwaɪərmənts/"},
+    "resources": {cn: "资源（复数）", ph: "/ˈriːsɔːrsɪz/"},
+    "results": {cn: "结果；成果", ph: "/rɪˈzʌlts/"},
+    "revenue": {cn: "收入；营收", ph: "/ˈrevənuː/"},
+    "reward": {cn: "奖励", ph: "/rɪˈwɔːrd/"},
+    "right": {cn: "正确的；右边", ph: "/raɪt/"},
+    "risks": {cn: "风险（复数）", ph: "/rɪsks/"},
+    "role-play": {cn: "角色扮演", ph: "/ˈroʊl pleɪ/"},
+    "roles": {cn: "角色；职位", ph: "/roʊlz/"},
+    "rough": {cn: "粗糙的；未加工的", ph: "/rʌf/"},
+    "rubber": {cn: "橡胶", ph: "/ˈrʌbər/"},
+    "rule": {cn: "规则", ph: "/ruːl/"},
+    "run": {cn: "运行；开展", ph: "/rʌn/"},
+    "sale": {cn: "销售；售卖", ph: "/seɪl/"},
+    "sales": {cn: "销售", ph: "/seɪlz/"},
+    "satisfied": {cn: "满意的", ph: "/ˈsætɪsfaɪd/"},
+    "saw": {cn: "看到（see过去式）", ph: "/sɔː/"},
+    "score": {cn: "分数", ph: "/skɔːr/"},
+    "searching": {cn: "搜索（现在分词）", ph: "/ˈsɜːrtʃɪŋ/"},
+    "second": {cn: "第二", ph: "/ˈsekənd/"},
+    "seemed": {cn: "似乎（过去式）", ph: "/siːmd/"},
+    "select": {cn: "选择；选拔", ph: "/sɪˈlekt/"},
+    "selection": {cn: "选拔；选择", ph: "/sɪˈlekʃən/"},
+    "seller": {cn: "卖家；销售者", ph: "/ˈselər/"},
+    "selling": {cn: "销售（现在分词）", ph: "/ˈselɪŋ/"},
+    "sensitive": {cn: "敏感的", ph: "/ˈsensətɪv/"},
+    "service": {cn: "服务", ph: "/ˈsɜːrvɪs/"},
+    "services": {cn: "服务（复数）", ph: "/ˈsɜːrvɪsɪz/"},
+    "sessions": {cn: "环节；课程", ph: "/ˈseʃənz/"},
+    "shared": {cn: "共享的", ph: "/ʃerd/"},
+    "short": {cn: "短的；短暂的", ph: "/ʃɔːrt/"},
+    "show": {cn: "展示；表明", ph: "/ʃoʊ/"},
+    "shows": {cn: "展示（第三人称）", ph: "/ʃoʊz/"},
+    "sign": {cn: "迹象；标志；签署", ph: "/saɪn/"},
+    "simple": {cn: "简单的", ph: "/ˈsɪmpəl/"},
+    "simply": {cn: "简单地", ph: "/ˈsɪmpli/"},
+    "six": {cn: "六", ph: "/sɪks/"},
+    "skill": {cn: "技能", ph: "/skɪl/"},
+    "slide": {cn: "幻灯片", ph: "/slaɪd/"},
+    "slides": {cn: "幻灯片（复数）", ph: "/slaɪdz/"},
+    "slow": {cn: "慢的", ph: "/sloʊ/"},
+    "small": {cn: "小的", ph: "/smɔːl/"},
+    "smoothly": {cn: "顺利地", ph: "/ˈsmuːðli/"},
+    "sold": {cn: "卖（sell过去式）", ph: "/soʊld/"},
+    "solution": {cn: "解决方案", ph: "/səˈluːʃən/"},
+    "solve": {cn: "解决", ph: "/sɑːlv/"},
+    "something": {cn: "某事；某物", ph: "/ˈsʌmθɪŋ/"},
+    "speak": {cn: "说话；发言", ph: "/spiːk/"},
+    "split": {cn: "拆分；分割", ph: "/splɪt/"},
+    "spoke": {cn: "说话（speak过去式）", ph: "/spoʊk/"},
+    "spoken": {cn: "说（speak过去分词）", ph: "/ˈspoʊkən/"},
+    "spot": {cn: "发现；识别；地点", ph: "/spɑːt/"},
+    "staff": {cn: "员工；职员", ph: "/stæf/"},
+    "stage": {cn: "阶段", ph: "/steɪdʒ/"},
+    "stages": {cn: "阶段（复数）", ph: "/ˈsteɪdʒɪz/"},
+    "standard": {cn: "标准的", ph: "/ˈstændərd/"},
+    "start": {cn: "开始", ph: "/stɑːrt/"},
+    "statements": {cn: "陈述（复数）", ph: "/ˈsteɪtmənts/"},
+    "stays": {cn: "保持（第三人称）", ph: "/steɪz/"},
+    "step": {cn: "步骤；阶段", ph: "/step/"},
+    "steps": {cn: "步骤（复数）", ph: "/steps/"},
+    "stone": {cn: "石头；原石", ph: "/stoʊn/"},
+    "story": {cn: "故事", ph: "/ˈstɔːri/"},
+    "strengths": {cn: "优势；长处", ph: "/streŋθs/"},
+    "stressed": {cn: "焦虑的；有压力的", ph: "/strest/"},
+    "stretch": {cn: "拉伸；伸展", ph: "/stretʃ/"},
+    "strong": {cn: "强大的；强壮的", ph: "/strɔːŋ/"},
+    "stronger": {cn: "更强壮的", ph: "/ˈstrɔːŋɡər/"},
+    "structure": {cn: "结构", ph: "/ˈstrʌktʃər/"},
+    "structured": {cn: "结构化的", ph: "/ˈstrʌktʃərd/"},
+    "struggle": {cn: "挣扎；艰难应对", ph: "/ˈstrʌɡəl/"},
+    "studies": {cn: "研究；案例（复数）", ph: "/ˈstʌdiz/"},
+    "style": {cn: "风格；方式", ph: "/staɪl/"},
+    "success": {cn: "成功", ph: "/səkˈses/"},
+    "successful": {cn: "成功的", ph: "/səkˈsesfəl/"},
+    "suggested": {cn: "建议（过去式）", ph: "/səɡˈdʒestɪd/"},
+    "support": {cn: "支持", ph: "/səˈpɔːrt/"},
+    "suppose": {cn: "假设；假定", ph: "/səˈpoʊz/"},
+    "surface": {cn: "表面", ph: "/ˈsɜːrfɪs/"},
+    "system": {cn: "系统", ph: "/ˈsɪstəm/"},
+    "take": {cn: "拿；带", ph: "/teɪk/"},
+    "talent": {cn: "天赋；才能", ph: "/ˈtælənt/"},
+    "talk": {cn: "谈论；谈话", ph: "/tɔːk/"},
+    "talks": {cn: "谈判；谈话", ph: "/tɔːks/"},
+    "target": {cn: "目标", ph: "/ˈtɑːrɡɪt/"},
+    "targeted": {cn: "有针对性的", ph: "/ˈtɑːrɡɪtɪd/"},
+    "tasks": {cn: "任务（复数）", ph: "/tæsks/"},
+    "team": {cn: "团队", ph: "/tiːm/"},
+    "tell": {cn: "告诉；讲述", ph: "/tel/"},
+    "temple": {cn: "寺庙", ph: "/ˈtempəl/"},
+    "tender": {cn: "招标；投标", ph: "/ˈtendər/"},
+    "test": {cn: "测试；检验", ph: "/test/"},
+    "than": {cn: "比", ph: "/ðæn/"},
+    "thank": {cn: "感谢", ph: "/θæŋk/"},
+    "their": {cn: "他们的", ph: "/ðer/"},
+    "these": {cn: "这些", ph: "/ðiːz/"},
+    "thicker": {cn: "更厚的；更粗的", ph: "/ˈθɪkər/"},
+    "things": {cn: "事情（复数）", ph: "/θɪŋz/"},
+    "think": {cn: "思考；认为", ph: "/θɪŋk/"},
+    "thinks": {cn: "认为；思考（第三人称）", ph: "/θɪŋks/"},
+    "third": {cn: "第三", ph: "/θɜːrd/"},
+    "three": {cn: "三", ph: "/θriː/"},
+    "through": {cn: "通过", ph: "/θruː/"},
+    "time": {cn: "时间；时机", ph: "/taɪm/"},
+    "times": {cn: "次数；时代", ph: "/taɪmz/"},
+    "today": {cn: "今天", ph: "/təˈdeɪ/"},
+    "together": {cn: "一起；共同", ph: "/təˈɡeðər/"},
+    "tools": {cn: "工具（复数）", ph: "/tuːlz/"},
+    "top": {cn: "顶尖的；顶部", ph: "/tɑːp/"},
+    "topic": {cn: "话题", ph: "/ˈtɑːpɪk/"},
+    "total": {cn: "总的；全部的", ph: "/ˈtoʊtəl/"},
+    "track": {cn: "追踪；跟踪", ph: "/træk/"},
+    "training": {cn: "培训；训练", ph: "/ˈtreɪnɪŋ/"},
+    "traits": {cn: "特质；特征", ph: "/treɪts/"},
+    "triangle": {cn: "三角；三角形", ph: "/ˈtraɪæŋɡəl/"},
+    "truly": {cn: "真正地", ph: "/ˈtruːli/"},
+    "trust": {cn: "信任", ph: "/trʌst/"},
+    "turn": {cn: "转变；转向", ph: "/tɜːrn/"},
+    "two": {cn: "二；两个", ph: "/tuː/"},
+    "understand": {cn: "理解；明白", ph: "/ˌʌndərˈstænd/"},
+    "unique": {cn: "独特的", ph: "/juˈniːk/"},
+    "until": {cn: "直到……为止", ph: "/ənˈtɪl/"},
+    "value": {cn: "价值", ph: "/ˈvæljuː/"},
+    "video": {cn: "视频", ph: "/ˈvɪdioʊ/"},
+    "view": {cn: "观点；看法", ph: "/vjuː/"},
+    "visited": {cn: "访问（过去式）", ph: "/ˈvɪzɪtɪd/"},
+    "visitors": {cn: "访客（复数）", ph: "/ˈvɪzɪtərz/"},
+    "walk": {cn: "走；走过", ph: "/wɔːk/"},
+    "want": {cn: "想要", ph: "/wɑːnt/"},
+    "wanted": {cn: "想要（want过去式）", ph: "/ˈwɑːntɪd/"},
+    "warning": {cn: "警告", ph: "/ˈwɔːrnɪŋ/"},
+    "wasting": {cn: "浪费（现在分词）", ph: "/ˈweɪstɪŋ/"},
+    "watch": {cn: "观看", ph: "/wɑːtʃ/"},
+    "watched": {cn: "观察（过去式）", ph: "/wɑːtʃt/"},
+    "way": {cn: "方式；道路", ph: "/weɪ/"},
+    "weak": {cn: "弱的；薄弱的", ph: "/wiːk/"},
+    "weaknesses": {cn: "弱点；劣势", ph: "/ˈwiːknəsɪz/"},
+    "well": {cn: "好；很好地", ph: "/wel/"},
+    "well-known": {cn: "著名的", ph: "/ˌwel ˈnoʊn/"},
+    "whatever": {cn: "无论什么", ph: "/wətˈevər/"},
+    "where": {cn: "在哪里", ph: "/wer/"},
+    "which": {cn: "哪一个", ph: "/wɪtʃ/"},
+    "while": {cn: "当……时", ph: "/waɪl/"},
+    "work": {cn: "工作；运作", ph: "/wɜːrk/"},
+    "workers": {cn: "员工；工作者", ph: "/ˈwɜːrkərz/"},
+    "workshop": {cn: "工作坊", ph: "/ˈwɜːrkʃɑːp/"},
+    "worries": {cn: "担忧（复数）", ph: "/ˈwʌriz/"},
+    "worry": {cn: "担心；忧虑", ph: "/ˈwɜːri/"},
+    "written": {cn: "写（write过去分词）", ph: "/ˈrɪtən/"},
+    "year": {cn: "年", ph: "/jɪr/"},
+    "years": {cn: "年（复数）", ph: "/jɪrz/"}
+};
+// ======== 状态变量 ========
+let currentIndex = 0;
+let isLooping = false;
+let isAutoPlaying = false;
+let currentAudio = null;
+let rate = 0.85;
+
+// ======== 初始化 ========
+function init() {
+    renderArticle();
+    updateProgress();
+    loadVoices();
+    showAudioStatus("✅ 页面加载完成！点击任意句子开始学习");
+}
+
+// ======== 英式语音加载 ========
+let gbVoice = null;
+
+function loadVoices() {
+    const voices = window.speechSynthesis.getVoices();
+    if (voices.length > 0) {
+        selectBritishVoice(voices);
+    }
+    window.speechSynthesis.onvoiceschanged = () => {
+        selectBritishVoice(window.speechSynthesis.getVoices());
+    };
+}
+
+function selectBritishVoice(voices) {
+    // 优先选择英式男声
+    gbVoice = voices.find(v =>
+        v.lang.startsWith('en-GB') &&
+        (v.name.toLowerCase().includes('male') ||
+         v.name.toLowerCase().includes('ryan') ||
+         v.name.toLowerCase().includes('thomas') ||
+         v.name.toLowerCase().includes('daniel') ||
+         v.name.toLowerCase().includes('james') ||
+         v.name.toLowerCase().includes('george') ||
+         v.name.toLowerCase().includes('william'))
+    ) || voices.find(v => v.lang.startsWith('en-GB'))
+      || voices.find(v => v.lang.startsWith('en'));
+
+    if (gbVoice) {
+        document.getElementById('voiceName').textContent = gbVoice.name + ' (' + gbVoice.lang + ')';
+    }
+}
+
+// ======== 渲染文章 ========
+function renderArticle() {
+    const container = document.getElementById('articleContent');
+    container.innerHTML = '';
+
+    articleData.forEach((item, index) => {
+        const sentenceDiv = document.createElement('div');
+        sentenceDiv.className = 'sentence';
+        sentenceDiv.id = 'sentence-' + index;
+        sentenceDiv.onclick = () => playSentence(index);
+
+        const englishDiv = document.createElement('div');
+        englishDiv.className = 'english-text';
+
+        // 将句子拆分为单词，使每个单词可点击
+        const words = item.en.split(/(\s+)/);
+        words.forEach(word => {
+            if (word.trim().length > 0) {
+                const wordSpan = document.createElement('span');
+                wordSpan.className = 'word';
+                wordSpan.textContent = word;
+                wordSpan.onclick = (e) => {
+                    e.stopPropagation();
+                    handleWordClick(word);
+                };
+                englishDiv.appendChild(wordSpan);
+            } else {
+                englishDiv.appendChild(document.createTextNode(' '));
+            }
+        });
+
+        const chineseDiv = document.createElement('div');
+        chineseDiv.className = 'chinese-text';
+        chineseDiv.id = 'chinese-' + index;
+        chineseDiv.textContent = item.cn;
+
+        sentenceDiv.appendChild(englishDiv);
+        sentenceDiv.appendChild(chineseDiv);
+        container.appendChild(sentenceDiv);
+    });
+}
+
+// ======== 播放句子 ========
+function playSentence(index) {
+    if (index < 0 || index >= articleData.length) return;
+    stopCurrentAudio();
+    currentIndex = index;
+    const sentence = articleData[index];
+
+    // 高亮当前句子
+    updateActiveSentence(index);
+
+    // 显示中文翻译
+    document.querySelectorAll('.chinese-text').forEach(el => el.classList.remove('show'));
+    const chineseDiv = document.getElementById('chinese-' + index);
+    if (chineseDiv && sentence.cn) {
+        chineseDiv.classList.add('show');
+    }
+
+    // 更新状态
+    document.getElementById('sentence-' + index).classList.add('playing');
+    document.getElementById('status').textContent = '▶️ 正在播放: ' + sentence.en.substring(0, 40) + '...';
+    showAudioStatus('🔊 正在播放句子 ' + (index + 1) + '/' + articleData.length);
+
+    // 优先使用预生成的Edge TTS音频 (en-GB-RyanNeural 英式男声)
+    const audioFile = 'audio/sentences/sentence_' + String(index).padStart(3, '0') + '.mp3';
+    currentAudio = new Audio(audioFile);
+    currentAudio.playbackRate = rate;
+    currentAudio.volume = 1;
+
+    currentAudio.onended = () => {
+        document.getElementById('sentence-' + index).classList.remove('playing');
+        currentAudio = null;
+        handlePlaybackEnd(index);
+    };
+
+    currentAudio.onerror = () => {
+        // 音频文件加载失败，降级到浏览器TTS
+        currentAudio = null;
+        console.log('音频文件未找到，使用浏览器TTS回退:', audioFile);
+        playBrowserTTS(sentence.en, index);
+    };
+
+    currentAudio.play().catch(() => {
+        // 播放失败，降级到浏览器TTS
+        currentAudio = null;
+        playBrowserTTS(sentence.en, index);
+    });
+
+    updateProgress();
+}
+
+function playBrowserTTS(text, index) {
+    if (!('speechSynthesis' in window)) return;
+    speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.rate = rate;
+    utterance.pitch = 1.0;
+    utterance.lang = 'en-GB';
+    if (gbVoice) {
+        utterance.voice = gbVoice;
+    }
+    utterance.onend = () => {
+        document.getElementById('sentence-' + index).classList.remove('playing');
+        handlePlaybackEnd(index);
+    };
+    utterance.onerror = () => {
+        document.getElementById('sentence-' + index).classList.remove('playing');
+        document.getElementById('status').textContent = '⚠️ 播放出错，请重试';
+    };
+    window.speechSynthesis.speak(utterance);
+}
+
+function handlePlaybackEnd(index) {
+    if (isLooping) {
+        // 单句循环
+        setTimeout(() => playSentence(index), 800);
+    } else if (isAutoPlaying) {
+        // 全文连播
+        if (index < articleData.length - 1) {
+            setTimeout(() => playSentence(index + 1), 1500);
+        } else {
+            // 播放完毕，自动回到开头继续（无限循环）
+            setTimeout(() => playSentence(0), 2000);
+        }
+    } else {
+        document.getElementById('status').textContent = '✅ 播放完成 — 点击句子继续学习';
+        showAudioStatus('✅ 播放完成');
+    }
+}
+
+function stopCurrentAudio() {
+    if (currentAudio) {
+        currentAudio.pause();
+        currentAudio.currentTime = 0;
+        currentAudio = null;
+    }
+    if ('speechSynthesis' in window) {
+        speechSynthesis.cancel();
+    }
+}
+
+function updateActiveSentence(index) {
+    document.querySelectorAll('.sentence').forEach((el, i) => {
+        if (i === index) {
+            el.classList.add('active');
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        } else {
+            el.classList.remove('active');
+        }
+    });
+}
+
+// ======== 控制按钮 ========
+function playCurrent() {
+    if (currentIndex >= 0 && currentIndex < articleData.length) {
+        playSentence(currentIndex);
+    }
+}
+
+function playNext() {
+    if (currentIndex < articleData.length - 1) {
+        playSentence(currentIndex + 1);
+    } else {
+        showAudioStatus('✅ 已经是最后一句了');
+    }
+}
+
+function toggleLoop() {
+    isLooping = !isLooping;
+    const btn = document.getElementById('loopBtn');
+    if (isLooping) {
+        btn.textContent = '🔁 单句循环: 开';
+        btn.classList.add('active');
+        isAutoPlaying = false;
+        document.getElementById('autoPlayBtn').textContent = '🔄 全文连播: 关';
+        document.getElementById('autoPlayBtn').classList.remove('active');
+        showAudioStatus('🔁 单句循环已开启');
+    } else {
+        btn.textContent = '🔁 单句循环: 关';
+        btn.classList.remove('active');
+        showAudioStatus('🔁 单句循环已关闭');
+    }
+}
+
+function toggleAutoPlay() {
+    isAutoPlaying = !isAutoPlaying;
+    const btn = document.getElementById('autoPlayBtn');
+    if (isAutoPlaying) {
+        btn.textContent = '🔄 全文连播: 开';
+        btn.classList.add('active');
+        isLooping = false;
+        document.getElementById('loopBtn').textContent = '🔁 单句循环: 关';
+        document.getElementById('loopBtn').classList.remove('active');
+        // 如果当前没有播放，从当前开始
+        if (!window.speechSynthesis.speaking) {
+            playSentence(currentIndex);
+        }
+        showAudioStatus('🔄 全文连播已开启');
+    } else {
+        btn.textContent = '🔄 全文连播: 关';
+        btn.classList.remove('active');
+        showAudioStatus('🔄 全文连播已关闭');
+    }
+}
+
+function stopPlaying() {
+    stopCurrentAudio();
+    isLooping = false;
+    isAutoPlaying = false;
+
+    document.getElementById('loopBtn').textContent = '🔁 单句循环: 关';
+    document.getElementById('loopBtn').classList.remove('active');
+    document.getElementById('autoPlayBtn').textContent = '🔄 全文连播: 关';
+    document.getElementById('autoPlayBtn').classList.remove('active');
+
+    document.querySelectorAll('.sentence').forEach(el => {
+        el.classList.remove('playing');
+    });
+
+    document.getElementById('status').textContent = '⏹️ 已停止';
+    showAudioStatus('⏹️ 已停止');
+}
+
+// ======== 语速控制 ========
+function changeRate() {
+    rate = parseFloat(document.getElementById('rateRange').value);
+    document.getElementById('rateDisplay').textContent = rate.toFixed(2) + 'x';
+    document.getElementById('currentRateDisplay').textContent = rate.toFixed(2);
+}
+
+// ======== 单词点击 ========
+function handleWordClick(word) {
+    const cleanWord = word.replace(/[^\w']/g, '').toLowerCase();
+    if (!cleanWord || cleanWord.length <= 1) return;
+
+    // 先播放单词发音（优先使用预录制音频）
+    playWordAudio(cleanWord);
+
+    // 显示单词释义面板
+    showWordDefinition(cleanWord);
+}
+
+function playWordAudio(word) {
+    // 尝试使用预录制音频
+    const audioFile = 'audio/words/' + word + '.mp3';
+    const wordAudio = new Audio(audioFile);
+    wordAudio.volume = 1;
+
+    wordAudio.onerror = () => {
+        // 降级到浏览器TTS
+        if ('speechSynthesis' in window) {
+            speechSynthesis.cancel();
+            const u = new SpeechSynthesisUtterance(word);
+            u.rate = 0.85;
+            u.lang = 'en-GB';
+            if (gbVoice) u.voice = gbVoice;
+            speechSynthesis.speak(u);
+        }
+    };
+
+    wordAudio.play().catch(() => {
+        // 降级
+        if ('speechSynthesis' in window) {
+            const u = new SpeechSynthesisUtterance(word);
+            u.rate = 0.85;
+            u.lang = 'en-GB';
+            if (gbVoice) u.voice = gbVoice;
+            speechSynthesis.speak(u);
+        }
+    });
+}
+
+function showWordDefinition(word) {
+    const panel = document.getElementById('translationPanel');
+    const title = document.getElementById('translationTitle');
+    const content = document.getElementById('translationContent');
+
+    title.textContent = '单词释义: ' + word;
+    const cleanWord = word.toLowerCase();
+
+    let html = '';
+
+    // 中文释义 + 音标
+    if (wordDict[cleanWord]) {
+        const wd = wordDict[cleanWord];
+        html += '<div class="word-info" style="background:#e7f3ff;padding:15px;border-radius:8px;margin-bottom:15px;">';
+        html += '<div style="color:#2196F3;font-size:14px;font-weight:600;margin-bottom:4px;">📖 音标</div>';
+        html += '<div style="font-size:16px;color:#e65100;margin-bottom:10px;font-style:italic;">' + wd.ph + '</div>';
+        html += '<div style="color:#2196F3;font-size:14px;font-weight:600;margin-bottom:4px;">🇨🇳 中文释义</div>';
+        html += '<div style="font-size:18px;color:#333;line-height:1.6;">' + wd.cn + '</div>';
+        html += '</div>';
+        html += '<p style="color:#999;font-size:13px;">🔍 正在查询英文详细释义...</p>';
+    } else {
+        html = '<p style="color:#999;font-size:13px;">🔍 正在查询...</p>';
+    }
+
+    // 听发音按钮
+    html += '<button class="play-word-btn" onclick="speakWord(\'' + word + '\')">🔊 听发音</button>';
+
+    content.innerHTML = html;
+    panel.classList.add('show');
+
+    // 查询在线词典
+    fetch('https://api.dictionaryapi.dev/api/v2/entries/en/' + word)
+        .then(response => response.json())
+        .then(data => {
+            if (data.title === 'No Definitions Found') {
+                if (wordDict[cleanWord]) {
+                    content.innerHTML = content.innerHTML.replace('<p style="color:#999;font-size:13px;">🔍 正在查询英文详细释义...</p>', '');
+                } else {
+                    content.innerHTML = '<p style="color:#999;">❌ 未找到 "' + word + '" 的释义</p>';
+                }
+            } else {
+                let detailHtml = '';
+
+                // 中文释义 + 音标
+                if (wordDict[cleanWord]) {
+                    const wd = wordDict[cleanWord];
+                    detailHtml += '<div class="word-info" style="background:#e7f3ff;padding:15px;border-radius:8px;margin-bottom:15px;">';
+                    detailHtml += '<div style="color:#2196F3;font-size:14px;font-weight:600;margin-bottom:4px;">📖 音标</div>';
+                    detailHtml += '<div style="font-size:16px;color:#e65100;margin-bottom:10px;font-style:italic;">' + wd.ph + '</div>';
+                    detailHtml += '<div style="color:#2196F3;font-size:14px;font-weight:600;margin-bottom:4px;">🇨🇳 中文释义</div>';
+                    detailHtml += '<div style="font-size:18px;color:#333;line-height:1.6;">' + wd.cn + '</div>';
+                    detailHtml += '</div>';
+                }
+
+                // 音标（在线词典补充）
+                data.forEach(entry => {
+                    if (entry.phonetics && entry.phonetics.length > 0) {
+                        const phonetic = entry.phonetics.find(p => p.text) || entry.phonetics[0];
+                        if (phonetic && phonetic.text && !wordDict[cleanWord]) {
+                            detailHtml += '<div class="word-info"><div class="phonetic">📖 音标: ' + phonetic.text + '</div></div>';
+                        }
+                    }
+                    // 释义
+                    if (entry.meanings) {
+                        entry.meanings.forEach(meaning => {
+                            detailHtml += '<div class="word-info">';
+                            detailHtml += '<div class="definition"><strong>' + meaning.partOfSpeech + '</strong>: ' + meaning.definitions[0].definition + '</div>';
+                            if (meaning.definitions[0].example) {
+                                detailHtml += '<div class="example">💬 例句: ' + meaning.definitions[0].example + '</div>';
+                            }
+                            detailHtml += '</div>';
+                        });
+                    }
+                });
+
+                // 听发音按钮
+                detailHtml += '<button class="play-word-btn" onclick="speakWord(\'' + word + '\')" style="margin-top:12px;">🔊 听发音</button>';
+
+                content.innerHTML = detailHtml;
+            }
+        })
+        .catch(error => {
+            console.error('查询错误:', error);
+            if (!wordDict[cleanWord]) {
+                // 保留现有的中文释义
+            }
+        });
+}
+
+function speakWord(word) {
+    playWordAudio(word);
+}
+
+function closeTranslation() {
+    document.getElementById('translationPanel').classList.remove('show');
+}
+
+// ======== 进度条 ========
+function updateProgress() {
+    if (articleData.length > 0) {
+        const progress = ((currentIndex + 1) / articleData.length) * 100;
+        document.getElementById('progressFill').style.width = progress + '%';
+    }
+}
+
+// ======== 提示信息 ========
+function showAudioStatus(message) {
+    const statusDiv = document.getElementById('audioStatus');
+    statusDiv.textContent = message;
+    statusDiv.classList.add('show');
+    setTimeout(() => {
+        statusDiv.classList.remove('show');
+    }, 3000);
+}
+
+// ======== 键盘快捷键 ========
+document.addEventListener('keydown', (e) => {
+    if (e.code === 'Space') {
+        e.preventDefault();
+        if (currentAudio || window.speechSynthesis.speaking) {
+            stopPlaying();
+        } else {
+            playCurrent();
+        }
+    } else if (e.code === 'ArrowRight') {
+        e.preventDefault();
+        if (currentIndex < articleData.length - 1) {
+            playSentence(currentIndex + 1);
+        }
+    } else if (e.code === 'ArrowLeft') {
+        e.preventDefault();
+        if (currentIndex > 0) {
+            playSentence(currentIndex - 1);
+        }
+    } else if (e.code === 'Escape') {
+        closeTranslation();
+    }
+});
+
+window.addEventListener('load', init);
+</script>
+</body>
+</html>
